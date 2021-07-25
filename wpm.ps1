@@ -47,12 +47,12 @@ function Write-Lines ($lines) {
                 write-host " " -NoNewline
             } else {
                 write-host $word[0] -NoNewline -ForegroundColor $word[1]
-                write-host " " -NoNewline
             }
         }
         write-host ""
     }
-}1
+}
+
 function Write-Char ($x, $y, $letter, $master_string, $color) {
     $host.UI.RawUI.CursorPosition = @{ x = $x; y = $y }
     if ($color) {
@@ -64,7 +64,7 @@ function Write-Char ($x, $y, $letter, $master_string, $color) {
     }
 }
 
-$words_per_line = 15
+$words_per_line = 5
 $PC = 0
 $Y = 0
 $num_right_words = 0
@@ -75,6 +75,7 @@ Clear-Host
 $line1 = Get-RandWords $word_list $words_per_line
 $line2 = Get-RandWords $word_list $words_per_line
 $line3 = Get-RandWords $word_list $words_per_line
+$recorded_colors = @()
 
 $master_string = ($line1 -join " ") + "`n"
 
@@ -82,7 +83,7 @@ Write-Lines @($line1, $line2, $line3)
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
-$timeout = New-TimeSpan -Seconds 15
+$timeout = New-TimeSpan -Seconds 1000
 
 while($StopWatch.Elapsed -lt $timeout) {
     $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
@@ -94,35 +95,40 @@ while($StopWatch.Elapsed -lt $timeout) {
         # in which case, jump to the next line
         if ($incoming_letter -ne " ") {
             Write-Char ($PC - 1) $Y $incoming_letter $master_string
+            $recorded_colors[($PC - 1)] = @($incoming_letter, "Red")
             $num_wrong_words++
         } else {
             # logic to jump to the new line
             $PC = 0
             if ($Y -eq 0) {
                 $Y++
+                $recorded_colors = @()
             } else {
                 clear-host
-                $line1 = $line2
+                $line1 = $recorded_colors
                 $line2 = $line3
                 $line3 = Get-RandWords $word_list $words_per_line
                 Write-Lines @($line1, $line2, $line3)
+                $recorded_colors = @()
             }
             $master_string = ($line2 -join " ") + "`n"
             $num_right_words++
         }
-    # if we're at a space
+        # if we're at a space
     } elseif ($master_string[$PC] -eq " ") {
         # don't keep going unless the incoming letter is a space
         if ($incoming_letter -ne " ") {
             Write-Char ($PC - 1) $Y $incoming_letter $master_string
+            $recorded_colors[($PC - 1)] = @($incoming_letter, "Red")
             $num_wrong_words++
         } else {
-        # keep going because we got a space
+            # keep going because we got a space
             $num_right_words++
             $PC++
+            $recorded_colors += ,@(" ", "Yellow")
         }
-
-    # if we're at a letter
+        
+        # if we're at a letter
     } elseif (($master_string[$PC] -ge 10) -or ($master_string[$PC] -le 122)) {
         # if the incoming letter is a space, we want to jump to the next word
         if ($incoming_letter -eq " ") {
@@ -130,23 +136,27 @@ while($StopWatch.Elapsed -lt $timeout) {
             while (1) {
                 if ($master_string[$PC] -eq " ") {
                     $PC++
+                    $recorded_colors += ,@(" ", "Yellow")
                     break
                 } elseif ($master_string[$PC] -eq "`n") {
                     $PC = 0
                     if ($Y -eq 0) {
                         $Y++
+                        $recorded_colors = @()
                     } else {
                         clear-host
-                        $line1 = $line2
+                        $line1 = $recorded_colors
                         $line2 = $line3
                         $line3 = Get-RandWords $word_list $words_per_line
                         Write-Lines @($line1, $line2, $line3)
+                        $recorded_colors = @()
                     }
                     $master_string = ($line2 -join " ") + "`n"
                     break
                 } else {
                     # if the letter is wrong, write that shit in red
                     Write-Char $PC $Y $master_string[$PC] $master_string "Red"
+                    $recorded_colors += ,@($master_string[$PC], "Red")
                     $PC++
                 }
             }
@@ -155,6 +165,7 @@ while($StopWatch.Elapsed -lt $timeout) {
         # if the incoming letter is a letter, just print it out
         } else {
             Write-Char $PC $Y $incoming_letter $master_string
+            $recorded_colors += ,@($incoming_letter, "Yellow")
             $PC++
         }
     }
@@ -175,4 +186,5 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     - have the user press a key at the end to quit
     - have the user press 'enter' at the end for more details on their performance
     - add some cools graphs and analytics at the end 
+    - make it notify you when caps lock is on
 #>
