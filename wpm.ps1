@@ -64,7 +64,7 @@ function Write-Char ($x, $y, $letter, $master_string, $color) {
     }
 }
 
-$words_per_line = 5
+$words_per_line = 10
 $PC = 0
 $Y = 0
 $num_right_words = 0
@@ -83,7 +83,7 @@ Write-Lines @($line1, $line2, $line3)
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
-$timeout = New-TimeSpan -Seconds 1000
+$timeout = New-TimeSpan -Seconds 15
 
 while($StopWatch.Elapsed -lt $timeout) {
     $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
@@ -102,15 +102,14 @@ while($StopWatch.Elapsed -lt $timeout) {
             $PC = 0
             if ($Y -eq 0) {
                 $Y++
-                $recorded_colors = @()
             } else {
                 clear-host
                 $line1 = $recorded_colors
                 $line2 = $line3
                 $line3 = Get-RandWords $word_list $words_per_line
                 Write-Lines @($line1, $line2, $line3)
-                $recorded_colors = @()
             }
+            $recorded_colors = @()
             $master_string = ($line2 -join " ") + "`n"
             $num_right_words++
         }
@@ -142,15 +141,14 @@ while($StopWatch.Elapsed -lt $timeout) {
                     $PC = 0
                     if ($Y -eq 0) {
                         $Y++
-                        $recorded_colors = @()
                     } else {
                         clear-host
                         $line1 = $recorded_colors
                         $line2 = $line3
                         $line3 = Get-RandWords $word_list $words_per_line
                         Write-Lines @($line1, $line2, $line3)
-                        $recorded_colors = @()
                     }
+                    $recorded_colors = @()
                     $master_string = ($line2 -join " ") + "`n"
                     break
                 } else {
