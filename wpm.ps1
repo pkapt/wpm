@@ -96,6 +96,7 @@ while($StopWatch.Elapsed -lt $timeout) {
         if ($incoming_letter -ne " ") {
             Write-Char ($PC - 1) $Y $incoming_letter $master_string
             $recorded_colors[($PC - 1)] = @($incoming_letter, "Red")
+            # TODO: should only increment wrong words the first time. this will keep recording wrong words even though you only got one word wrong
             $num_wrong_words++
         } else {
             # logic to jump to the new line
