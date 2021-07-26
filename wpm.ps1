@@ -90,8 +90,12 @@ while($StopWatch.Elapsed -lt $timeout) {
     $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
     $incoming_letter = $key.character
 
-    # if we're at the end of a line
-    if ($master_string[$PC] -eq "`n") {
+    # if we get an enter, do nothing
+    if ($incoming_letter -eq 13) {
+        # pass
+    }
+    # if we're at a newline
+    elseif ($master_string[$PC] -eq "`n") {
         # dont keep going unless the incoming letter is a space,
         # in which case, jump to the next line
         if ($incoming_letter -ne " ") {
@@ -116,9 +120,10 @@ while($StopWatch.Elapsed -lt $timeout) {
             $master_string = ($line2 -join " ") + "`n"
             $num_right_words++
         }
+    }
 
     # if we're at a space
-    } elseif ($master_string[$PC] -eq " ") {
+    elseif ($master_string[$PC] -eq " ") {
         # don't keep going unless the incoming letter is a space
         if ($incoming_letter -ne " ") {
             Write-Char ($PC - 1) $Y $incoming_letter $master_string
@@ -131,9 +136,10 @@ while($StopWatch.Elapsed -lt $timeout) {
             $PC++
             $recorded_colors += ,@(" ", "Yellow")
         }
-        
+    }
+
     # if we're at a letter
-    } elseif (($master_string[$PC] -ge 10) -or ($master_string[$PC] -le 122)) {
+    elseif (($master_string[$PC] -ge 10) -or ($master_string[$PC] -le 122)) {
         # if the incoming letter is a space, we want to jump to the next word
         if ($incoming_letter -eq " ") {
             # logic to jump to the next word
