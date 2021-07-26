@@ -64,7 +64,7 @@ function Write-Char ($x, $y, $letter, $master_string, $color) {
     }
 }
 
-$words_per_line = 10
+$words_per_line = 5
 $PC = 0
 $Y = 0
 $num_right_words = 0
@@ -80,6 +80,7 @@ $recorded_colors = @()
 $master_string = ($line1 -join " ") + "`n"
 
 Write-Lines @($line1, $line2, $line3)
+$host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
@@ -110,11 +111,13 @@ while($StopWatch.Elapsed -lt $timeout) {
                 $line3 = Get-RandWords $word_list $words_per_line
                 Write-Lines @($line1, $line2, $line3)
             }
+            $host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
             $recorded_colors = @()
             $master_string = ($line2 -join " ") + "`n"
             $num_right_words++
         }
-        # if we're at a space
+
+    # if we're at a space
     } elseif ($master_string[$PC] -eq " ") {
         # don't keep going unless the incoming letter is a space
         if ($incoming_letter -ne " ") {
@@ -123,12 +126,13 @@ while($StopWatch.Elapsed -lt $timeout) {
             $num_wrong_words++
         } else {
             # keep going because we got a space
+            Write-Char $PC $Y $incoming_letter $master_string
             $num_right_words++
             $PC++
             $recorded_colors += ,@(" ", "Yellow")
         }
         
-        # if we're at a letter
+    # if we're at a letter
     } elseif (($master_string[$PC] -ge 10) -or ($master_string[$PC] -le 122)) {
         # if the incoming letter is a space, we want to jump to the next word
         if ($incoming_letter -eq " ") {
@@ -149,6 +153,7 @@ while($StopWatch.Elapsed -lt $timeout) {
                         $line3 = Get-RandWords $word_list $words_per_line
                         Write-Lines @($line1, $line2, $line3)
                     }
+                    $host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
                     $recorded_colors = @()
                     $master_string = ($line2 -join " ") + "`n"
                     break
@@ -180,7 +185,6 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     - make the cursor be at the right spot
     - support back spaces
     - refactor the code that does the line swaps/ the line breaks
-    - keep the colors the same when you go up a line
     - add feature to only start recording when the user starts typing (and add some feedback to indicate that)
     - have the user press a key at the end to quit
     - have the user press 'enter' at the end for more details on their performance
