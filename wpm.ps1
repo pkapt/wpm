@@ -84,7 +84,7 @@ $host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
-$timeout = New-TimeSpan -Seconds 15
+$timeout = New-TimeSpan -Seconds 100
 
 while($StopWatch.Elapsed -lt $timeout) {
     $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
@@ -94,6 +94,12 @@ while($StopWatch.Elapsed -lt $timeout) {
     if ($incoming_letter -eq 13) {
         # pass
     }
+
+    # if we get a backspace, do nothing
+    elseif ($incoming_letter -eq 8) {
+        # pass
+    }
+
     # if we're at a newline
     elseif ($master_string[$PC] -eq "`n") {
         # dont keep going unless the incoming letter is a space,
@@ -188,7 +194,6 @@ $wpm = $num_right_words / $timeout.TotalMinutes
 
 <# 
     TODO:
-    - make the cursor be at the right spot
     - support back spaces
     - refactor the code that does the line swaps/ the line breaks
     - add feature to only start recording when the user starts typing (and add some feedback to indicate that)
@@ -196,4 +201,5 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     - have the user press 'enter' at the end for more details on their performance
     - add some cools graphs and analytics at the end 
     - make it notify you when caps lock is on
+    - make it print in the middle and look cool
 #>
