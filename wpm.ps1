@@ -71,8 +71,7 @@ function Write-Lines ($lines) {
 function Write-Char ($x, $y, $letter, $master_string, $color) {
     $width = $Host.UI.RawUI.WindowSize.Width
     $offset = [int]($width / 2) - $master_string.Length
-    # write-host ("`n`n`n`nwidth {0}, offset {1}, x+offset {2}" -f $width, $offset, ($x + $offset))
-    $host.UI.RawUI.CursorPosition = @{ x = $x + $offset; y = $y }
+    $host.UI.RawUI.CursorPosition = @{ x = $x + $offset; y = $y }  
     if ($color) {
         Write-Host $letter -ForegroundColor $color -NoNewline
     } elseif ($letter -eq $master_string[$PC]) {
