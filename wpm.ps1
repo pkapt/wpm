@@ -106,7 +106,7 @@ $host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
-$timeout = New-TimeSpan -Seconds 100
+$timeout = New-TimeSpan -Seconds 15
 
 while($StopWatch.Elapsed -lt $timeout) {
     $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
