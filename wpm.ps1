@@ -40,21 +40,39 @@ function Get-RandWords ($list, $num) {
     return $rand_words
 }
 function Write-Lines ($lines) {
+    $Y = 0
     foreach ($line in $lines) {
+        $X = 0
         foreach ($word in $line) {
+            $width = $Host.UI.RawUI.WindowSize.Width
+            $offset = 0
+            try {
+                $_ = $line[$lines.Length + 5][0]
+                $offset = [int]($width / 2) - ($line.Length + 1)
+            }
+            catch {
+                $offset = [int]($width / 2) - (($line -join " ").Length + 1)
+            }
             if ($word -is [string]) {
+                $host.UI.RawUI.CursorPosition = @{ x = $X + $offset; y = $Y }
                 write-host $word -NoNewline
                 write-host " " -NoNewline
+                $X += $word.Length + 1
             } else {
+                $host.UI.RawUI.CursorPosition = @{ x = $X + $offset; y = $Y }
                 write-host $word[0] -NoNewline -ForegroundColor $word[1]
+                $X++
             }
         }
-        write-host ""
+        $Y++
     }
 }
 
 function Write-Char ($x, $y, $letter, $master_string, $color) {
-    $host.UI.RawUI.CursorPosition = @{ x = $x; y = $y }
+    $width = $Host.UI.RawUI.WindowSize.Width
+    $offset = [int]($width / 2) - $master_string.Length
+    # write-host ("`n`n`n`nwidth {0}, offset {1}, x+offset {2}" -f $width, $offset, ($x + $offset))
+    $host.UI.RawUI.CursorPosition = @{ x = $x + $offset; y = $y }
     if ($color) {
         Write-Host $letter -ForegroundColor $color -NoNewline
     } elseif ($letter -eq $master_string[$PC]) {
@@ -62,6 +80,10 @@ function Write-Char ($x, $y, $letter, $master_string, $color) {
     } else {
         Write-Host $letter -ForegroundColor Red -NoNewline
     }
+}
+
+function Get-CursorPosition ($x, $y) {
+    
 }
 
 $words_per_line = 5
@@ -121,10 +143,12 @@ while($StopWatch.Elapsed -lt $timeout) {
                 $line3 = Get-RandWords $word_list $words_per_line
                 Write-Lines @($line1, $line2, $line3)
             }
-            $host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
+            $width = $Host.UI.RawUI.WindowSize.Width
+            $offset = [int]($width / 2) - $master_string.Length
             $recorded_colors = @()
             $master_string = ($line2 -join " ") + "`n"
             $num_right_words++
+            $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }
         }
     }
 
@@ -165,9 +189,11 @@ while($StopWatch.Elapsed -lt $timeout) {
                         $line3 = Get-RandWords $word_list $words_per_line
                         Write-Lines @($line1, $line2, $line3)
                     }
-                    $host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
+                    $width = $Host.UI.RawUI.WindowSize.Width
+                    $offset = [int]($width / 2)
                     $recorded_colors = @()
                     $master_string = ($line2 -join " ") + "`n"
+                    $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }
                     break
                 } else {
                     # if the letter is wrong, write that shit in red
@@ -194,12 +220,18 @@ $wpm = $num_right_words / $timeout.TotalMinutes
 
 <# 
     TODO:
-    - support back spaces
-    - refactor the code that does the line swaps/ the line breaks
+    - make it print in the middle and look cool
+    - show a timer showing how much time remaining
+    - make it notify you when caps lock is on
     - add feature to only start recording when the user starts typing (and add some feedback to indicate that)
     - have the user press a key at the end to quit
     - have the user press 'enter' at the end for more details on their performance
+    - add command line options for time ect
     - add some cools graphs and analytics at the end 
-    - make it notify you when caps lock is on
-    - make it print in the middle and look cool
+#>
+
+<#
+    Longer term goals:
+    - support back spaces
+    - refactor / cleanup the while loop (?)
 #>
