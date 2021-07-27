@@ -236,3 +236,10 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     - support back spaces
     - refactor / cleanup the while loop (?)
 #>
+
+<#
+    BUGS:
+    - TODO on line 132
+    - when y=1, press space on last word in line messes up cursor position
+
+#>
