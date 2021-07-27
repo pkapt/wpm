@@ -83,7 +83,7 @@ function Write-Char ($x, $y, $letter, $master_string, $color) {
 }
 
 function Get-CursorPosition ($x, $y) {
-    
+
 }
 
 $words_per_line = 5
@@ -143,11 +143,12 @@ while($StopWatch.Elapsed -lt $timeout) {
                 $line3 = Get-RandWords $word_list $words_per_line
                 Write-Lines @($line1, $line2, $line3)
             }
-            $width = $Host.UI.RawUI.WindowSize.Width
-            $offset = [int]($width / 2) - $master_string.Length
+            $offset = [int]($width / 2) 
             $recorded_colors = @()
             $master_string = ($line2 -join " ") + "`n"
             $num_right_words++
+            $width = $Host.UI.RawUI.WindowSize.Width
+            $offset = [int]($width / 2) - $master_string.Length
             $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }
         }
     }
@@ -189,10 +190,10 @@ while($StopWatch.Elapsed -lt $timeout) {
                         $line3 = Get-RandWords $word_list $words_per_line
                         Write-Lines @($line1, $line2, $line3)
                     }
-                    $width = $Host.UI.RawUI.WindowSize.Width
-                    $offset = [int]($width / 2)
                     $recorded_colors = @()
                     $master_string = ($line2 -join " ") + "`n"
+                    $offset = [int]($width / 2)
+                    $width = $Host.UI.RawUI.WindowSize.Width
                     $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }
                     break
                 } else {
