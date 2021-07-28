@@ -100,8 +100,11 @@ function Get-CursorPosition ($x, $y) {
                                   APPLICATION CODE
 ###################################################################################>
 
+param (
+    $timeout
+)
+
 # declare some global variables
-$TIMEOUT = 100
 $OFFSET_Y = 2
 $WORDS_PER_LINE = 5
 $PC = 0
@@ -138,7 +141,7 @@ Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
-$timeout = New-TimeSpan -Seconds $TIMEOUT
+$timeout = New-TimeSpan -Seconds $timeout
 
 while($StopWatch.Elapsed -lt $timeout) {
     if ($use_already_existing_key_flag) {
