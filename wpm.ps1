@@ -1,3 +1,10 @@
+<###################################################################################
+                            COMMAND LINE ARGUMENTS
+###################################################################################>
+param (
+    [int]$time = 15,
+    [int]$wordsPerLine = 5
+)
 
 <###################################################################################
                                    CONSTANTS
@@ -100,13 +107,10 @@ function Get-CursorPosition ($x, $y) {
                                   APPLICATION CODE
 ###################################################################################>
 
-param (
-    $timeout
-)
 
 # declare some global variables
 $OFFSET_Y = 2
-$WORDS_PER_LINE = 5
+$WORDS_PER_LINE = $wordsPerLine
 $PC = 0
 $Y = 0
 $num_right_words = 0
@@ -141,7 +145,7 @@ Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
-$timeout = New-TimeSpan -Seconds $timeout
+$timeout = New-TimeSpan -Seconds $time
 
 while($StopWatch.Elapsed -lt $timeout) {
     if ($use_already_existing_key_flag) {
