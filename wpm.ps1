@@ -48,10 +48,10 @@ function Write-Lines ($lines) {
             $offset = 0
             try {
                 $_ = $line[$lines.Length + 5][0]
-                $offset = [int]($width / 2) - ($line.Length + 1)
+                [int]$offset = ($width / 2) - (($line.Length + 1) / 2)
             }
             catch {
-                $offset = [int]($width / 2) - (($line -join " ").Length + 1)
+                [int]$offset = ($width / 2) - ((($line -join " ").Length + 1) / 2)
             }
             if ($word -is [string]) {
                 $host.UI.RawUI.CursorPosition = @{ x = $X + $offset; y = $Y }
@@ -70,7 +70,7 @@ function Write-Lines ($lines) {
 
 function Write-Char ($x, $y, $letter, $master_string, $color) {
     $width = $Host.UI.RawUI.WindowSize.Width
-    $offset = [int]($width / 2) - $master_string.Length
+    [int]$offset = ($width / 2) - ($master_string.Length / 2)
     $host.UI.RawUI.CursorPosition = @{ x = $x + $offset; y = $y }  
     if ($color) {
         Write-Host $letter -ForegroundColor $color -NoNewline
@@ -101,11 +101,14 @@ $recorded_colors = @()
 $master_string = ($line1 -join " ") + "`n"
 
 Write-Lines @($line1, $line2, $line3)
-$host.UI.RawUI.CursorPosition = @{ x = $PC; y = $Y }
+
+$width = $Host.UI.RawUI.WindowSize.Width
+[int]$offset = ($width / 2) - ($master_string.Length / 2)
+$host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }  
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
-$timeout = New-TimeSpan -Seconds 15
+$timeout = New-TimeSpan -Seconds 100
 
 while($StopWatch.Elapsed -lt $timeout) {
     $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
@@ -142,12 +145,11 @@ while($StopWatch.Elapsed -lt $timeout) {
                 $line3 = Get-RandWords $word_list $words_per_line
                 Write-Lines @($line1, $line2, $line3)
             }
-            $offset = [int]($width / 2) 
             $recorded_colors = @()
             $master_string = ($line2 -join " ") + "`n"
             $num_right_words++
             $width = $Host.UI.RawUI.WindowSize.Width
-            $offset = [int]($width / 2) - $master_string.Length
+            [int]$offset = ($width / 2) - ($master_string.Length  / 2)
             $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }
         }
     }
@@ -191,8 +193,8 @@ while($StopWatch.Elapsed -lt $timeout) {
                     }
                     $recorded_colors = @()
                     $master_string = ($line2 -join " ") + "`n"
-                    $offset = [int]($width / 2)
                     $width = $Host.UI.RawUI.WindowSize.Width
+                    [int]$offset = ($width / 2) - ($master_string.Length  / 2)
                     $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }
                     break
                 } else {
@@ -206,8 +208,12 @@ while($StopWatch.Elapsed -lt $timeout) {
         
         # if the incoming letter is a letter, just print it out
         } else {
+            if ($incoming_letter -eq $master_string[$PC]) {
+                $recorded_colors += ,@($incoming_letter, "Yellow")
+            } else {
+                $recorded_colors += ,@($incoming_letter, "Red")
+            }
             Write-Char $PC $Y $incoming_letter $master_string
-            $recorded_colors += ,@($incoming_letter, "Yellow")
             $PC++
         }
     }
@@ -228,6 +234,7 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     - have the user press 'enter' at the end for more details on their performance
     - add command line options for time ect
     - add some cools graphs and analytics at the end 
+    - refactor out the code that gets the position of the cursor
 #>
 
 <#
