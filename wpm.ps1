@@ -1,4 +1,7 @@
 
+<###################################################################################
+                                   CONSTANTS
+###################################################################################>
 $word_list = @(
     "was", "are", "have", "had", "were", "can", "said", "use", "will", "would",
     "make", "like", "has", "look", "write", "see", "could", "been", "call",
@@ -31,7 +34,11 @@ $word_list = @(
     "along", "until", "without", "you", "that", "his", "they", "this", "what", 
     "your", "which", "she", "their", "them", "these", "her", "him", "who", 
     "its", "our", "something", "those", "and", "but", "than", "because", "while" )
-               
+
+<###################################################################################
+                                    FUNCTIONS
+###################################################################################>
+    
 function Get-RandWords ($list, $num) {
     $rand_words = @()
     for($i = 0; $i -lt $num; $i++) {
@@ -39,8 +46,12 @@ function Get-RandWords ($list, $num) {
     }
     return $rand_words
 }
-function Write-Lines ($lines) {
-    $Y = 0
+function Write-Lines ($lines, $offset) {
+    if ($offset) {
+        $Y = $offset
+    } else {
+        $Y = 0
+    }
     foreach ($line in $lines) {
         $X = 0
         foreach ($word in $line) {
@@ -85,26 +96,29 @@ function Get-CursorPosition ($x, $y) {
 
 }
 
+<###################################################################################
+                                  APPLICATION CODE
+###################################################################################>
+
+<# GLOBAL VARIABLES #>
 $words_per_line = 5
 $PC = 0
 $Y = 0
 $num_right_words = 0
 $num_wrong_words = 0
-
-Clear-Host
-
+$recorded_colors = @()
 $line1 = Get-RandWords $word_list $words_per_line
 $line2 = Get-RandWords $word_list $words_per_line
 $line3 = Get-RandWords $word_list $words_per_line
-$recorded_colors = @()
-
 $master_string = ($line1 -join " ") + "`n"
 
-Write-Lines @($line1, $line2, $line3)
-
+<# APPLICATION LOGIC #>
 $width = $Host.UI.RawUI.WindowSize.Width
 [int]$offset = ($width / 2) - ($master_string.Length / 2)
 $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $Y }  
+
+Clear-Host
+Write-Lines @($line1, $line2, $line3) -offset
 
 $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch 
 $StopWatch.start()
@@ -226,10 +240,9 @@ $wpm = $num_right_words / $timeout.TotalMinutes
 
 <# 
     TODO:
-    - make it print in the middle and look cool
+    - add feature to only start recording when the user starts typing (and add some feedback to indicate that)
     - show a timer showing how much time remaining
     - make it notify you when caps lock is on
-    - add feature to only start recording when the user starts typing (and add some feedback to indicate that)
     - have the user press a key at the end to quit
     - have the user press 'enter' at the end for more details on their performance
     - add command line options for time ect
@@ -241,11 +254,10 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     Longer term goals:
     - support back spaces
     - refactor / cleanup the while loop (?)
+    - use function parameters for all function calls
 #>
 
 <#
     BUGS:
     - TODO on line 132
-    - when y=1, press space on last word in line messes up cursor position
-
 #>
