@@ -61,16 +61,16 @@ function Write-Lines ($lines, $offset) {
     }
     foreach ($line in $lines) {
         $X = 0
+        $width = $Host.UI.RawUI.WindowSize.Width
+        $offset = 0
+        try {
+            $_ = $line[$lines[2].Length + 5]
+            [int]$offset = ($width / 2) - ((($line -join " ").Length + 1) / 2)
+        }
+        catch {
+            [int]$offset = ($width / 2) - (($line.Length + 1) / 2)
+        }
         foreach ($word in $line) {
-            $width = $Host.UI.RawUI.WindowSize.Width
-            $offset = 0
-            try {
-                $_ = $line[$lines.Length + 5][0]
-                [int]$offset = ($width / 2) - (($line.Length + 1) / 2)
-            }
-            catch {
-                [int]$offset = ($width / 2) - ((($line -join " ").Length + 1) / 2)
-            }
             if ($word -is [string]) {
                 $host.UI.RawUI.CursorPosition = @{ x = $X + $offset; y = $Y }
                 write-host $word -NoNewline
@@ -110,7 +110,7 @@ function Get-CursorPosition ($x, $y) {
 
 # declare some global variables
 $OFFSET_Y = 2
-$WORDS_PER_LINE = $wordsPerLine
+$WORDS_PER_LINE = 10
 $PC = 0
 $Y = 0
 $num_right_words = 0
