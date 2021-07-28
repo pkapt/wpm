@@ -268,12 +268,12 @@ while($StopWatch.Elapsed -lt $timeout) {
         }
     }
 
-    # print the timer
-    # $width = $Host.UI.RawUI.WindowSize.Width
-    # [string[]]$time = $StopWatch.Elapsed.TotalSeconds
-    # [int]$offset = ($width / 2) - ($time.Length  / 2)
-    # $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y_TIMER) }
-    # write-host $time
+    #print the timer
+    $width = $Host.UI.RawUI.WindowSize.Width
+    [string[]]$time = $StopWatch.Elapsed.TotalSeconds
+    [int]$offset = ($width / 2) - ($time.Length  / 2)
+    $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y_TIMER) }
+    write-host $time -NoNewLine
     
 
 }
