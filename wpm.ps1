@@ -103,6 +103,7 @@ function Get-CursorPosition ($x, $y) {
 # declare some global variables
 $TIMEOUT = 100
 $OFFSET_Y = 2
+$OFFSET_Y_TIMER
 $WORDS_PER_LINE = 5
 $PC = 0
 $Y = 0
@@ -251,6 +252,15 @@ while($StopWatch.Elapsed -lt $timeout) {
             $PC++
         }
     }
+
+    # print the timer
+    $width = $Host.UI.RawUI.WindowSize.Width
+    [string[]]$time = $StopWatch.Elapsed.TotalSeconds
+    [int]$offset = ($width / 2) - ($time.Length  / 2)
+    $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y_TIMER) }
+    write-host $time
+    
+
 }
 
 write-host "`n`n"
@@ -260,13 +270,8 @@ $wpm = $num_right_words / $timeout.TotalMinutes
 
 <# 
     TODO:
-    - add feature to only start recording when the user starts typing (and add some feedback to indicate that)
     - show a timer showing how much time remaining
-    - make it notify you when caps lock is on
-    - have the user press a key at the end to quit
     - have the user press 'enter' at the end for more details on their performance
-    - add command line options for time ect
-    - add some cools graphs and analytics at the end 
     - refactor out the code that gets the position of the cursor
 #>
 
