@@ -103,17 +103,17 @@ function Get-CursorPosition ($x, $y) {
 
 }
 
-function Show-Timer ($stopwatch, $last_second_value, $y_coord) {
+function Show-Timer ($stopwatch, $last_second_value, $y_coord, $total_time) {
     #print the timer
     $width = $Host.UI.RawUI.WindowSize.Width
-    [string[]]$time = [int]$StopWatch.Elapsed.TotalSeconds[0]
-    [int]$offset = ($width / 2) - ($time.Length  / 2)
-    if ($last_second_value -ne $time) {
-        $last_cursor_pos = $host.UI.RawUI.CursorPosition
-        $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $y_coord }
-        write-host $time -NoNewLine
-        $host.UI.RawUI.CursorPosition = @{ x = $last_cursor_pos.X; y = $last_cursor_pos.Y }
-    }
+    $time_s = ([timespan]::fromseconds($total_time.TotalSeconds) - 
+               [timespan]::fromseconds($StopWatch.Elapsed.TotalSeconds))
+    $time_str = ("{0:mm\:ss}" -f $time_s)
+    [int]$offset = ($width / 2) - ($time_str.Length  / 2)
+    $last_cursor_pos = $host.UI.RawUI.CursorPosition
+    $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $y_coord }
+    write-host $time_str -NoNewLine
+    $host.UI.RawUI.CursorPosition = @{ x = $last_cursor_pos.X; y = $last_cursor_pos.Y }
 }
 <###################################################################################
                                   APPLICATION CODE
@@ -202,7 +202,7 @@ while($StopWatch.Elapsed -lt $timeout) {
                     $Y++
                 } else {
                     clear-host
-                    Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER
+                    Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER -total_time $timeout
                     $line1 = $recorded_colors
                     $line2 = $line3
                     $line3 = Get-RandWords $word_list $WORDS_PER_LINE
@@ -249,7 +249,7 @@ while($StopWatch.Elapsed -lt $timeout) {
                             $Y++
                         } else {
                             clear-host
-                            Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER
+                            Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER -total_time $timeout
                             $line1 = $recorded_colors
                             $line2 = $line3
                             $line3 = Get-RandWords $word_list $WORDS_PER_LINE
@@ -283,9 +283,10 @@ while($StopWatch.Elapsed -lt $timeout) {
         }
     }
 
+    # display the timer
     $time = [int]$Stopwatch.Elapsed.TotalSeconds
     if ($saved_time -ne $time) {
-        Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER
+        Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER -total_time $timeout
     }
     $saved_time = $time
 }
