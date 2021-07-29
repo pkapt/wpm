@@ -103,6 +103,18 @@ function Get-CursorPosition ($x, $y) {
 
 }
 
+function Show-Timer ($stopwatch, $last_second_value, $y_coord) {
+    #print the timer
+    $width = $Host.UI.RawUI.WindowSize.Width
+    [string[]]$time = [int]$StopWatch.Elapsed.TotalSeconds[0]
+    [int]$offset = ($width / 2) - ($time.Length  / 2)
+    if ($last_second_value -ne $time) {
+        $last_cursor_pos = $host.UI.RawUI.CursorPosition
+        $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $y_coord }
+        write-host $time -NoNewLine
+        $host.UI.RawUI.CursorPosition = @{ x = $last_cursor_pos.X; y = $last_cursor_pos.Y }
+    }
+}
 <###################################################################################
                                   APPLICATION CODE
 ###################################################################################>
@@ -110,10 +122,11 @@ function Get-CursorPosition ($x, $y) {
 # declare some global variables
 $TIMEOUT = 100
 $OFFSET_Y = 2
-$OFFSET_Y_TIMER
+$OFFSET_Y_TIMER = 0
 $WORDS_PER_LINE = 5
 $PC = 0
 $Y = 0
+$last_second_value = 100
 $num_right_words = 0
 $num_wrong_words = 0
 $recorded_colors = @()
@@ -189,6 +202,7 @@ while($StopWatch.Elapsed -lt $timeout) {
                     $Y++
                 } else {
                     clear-host
+                    Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER
                     $line1 = $recorded_colors
                     $line2 = $line3
                     $line3 = Get-RandWords $word_list $WORDS_PER_LINE
@@ -235,6 +249,7 @@ while($StopWatch.Elapsed -lt $timeout) {
                             $Y++
                         } else {
                             clear-host
+                            Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER
                             $line1 = $recorded_colors
                             $line2 = $line3
                             $line3 = Get-RandWords $word_list $WORDS_PER_LINE
@@ -268,14 +283,11 @@ while($StopWatch.Elapsed -lt $timeout) {
         }
     }
 
-    #print the timer
-    $width = $Host.UI.RawUI.WindowSize.Width
-    [string[]]$time = $StopWatch.Elapsed.TotalSeconds
-    [int]$offset = ($width / 2) - ($time.Length  / 2)
-    $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y_TIMER) }
-    write-host $time -NoNewLine
-    
-
+    $time = [int]$Stopwatch.Elapsed.TotalSeconds
+    if ($saved_time -ne $time) {
+        Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER
+    }
+    $saved_time = $time
 }
 
 write-host "`n`n"
@@ -288,6 +300,8 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     - show a timer showing how much time remaining
     - have the user press 'enter' at the end for more details on their performance
     - refactor out the code that gets the position of the cursor
+
+    - maybe get rid of the cursor, but use a different color text for the position
 #>
 
 <#
