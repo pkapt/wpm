@@ -150,8 +150,12 @@ Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
 $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y) }  
 
 # wait for any key to be pressed and star the test
-$key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-$use_already_existing_key_flag = $true
+# $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+$first_keypress = $null
+while(1) {
+    $first_keypress = Get-KeyPress
+    if ($null -ne $first_keypress) {break}
+}
 
 # now print the opening lines and start the test
 Clear-Host
@@ -162,12 +166,13 @@ $StopWatch.start()
 $timeout = New-TimeSpan -Seconds $TIMEOUT
 
 while($StopWatch.Elapsed -lt $timeout) {
-    # if ($use_already_existing_key_flag) {
-    #     $use_already_existing_key_flag = $false
-    # } else {
-    #     $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-    # }
-    $key = Get-KeyPress
+    $key = $null
+    if ($null -ne $first_keypress) {
+        $key = $first_keypress
+        $first_keypress = $null
+    } else {
+        $key = Get-KeyPress
+    }
     if ($key) {
         [string]$incoming_letter = $key.key
 
