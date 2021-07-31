@@ -66,11 +66,9 @@ function Write-Lines ($lines, $offset) {
         $temp = $line[$lines[2].Length + 5]
         if ($null -ne $temp) {
             [int]$offset = ($width / 2) - (($line.Length + 1) / 2)
-            Add-Content debug.log ("clause 1 -- Width: {0} Line Length: {1}" -f $width, $line.Length)
         }
         else {
             [int]$offset = ($width / 2) - ((($line -join " ").Length + 1) / 2)
-            Add-Content debug.log ("clause 2 -- Width: {0} Line Length: {1}" -f $width, (($line -join " ").Length + 1))
         }
         # write-host ("`n`n`n`n`n{0}" -f $offset)
         foreach ($word in $line) {
@@ -331,3 +329,6 @@ $wpm = $num_right_words / $timeout.TotalMinutes
     BUGS:
     - TODO on line 132
 #>
+
+# debug logger
+# Add-Content debug.log ("clause 1 -- Width: {0} Line Length: {1}" -f $width, $line.Length)
