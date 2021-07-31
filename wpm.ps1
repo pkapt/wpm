@@ -2,7 +2,7 @@
                             COMMAND LINE ARGUMENTS
 ###################################################################################>
 param (
-    [int]$time = 15,
+    [int]$time = 200,
     [int]$wordsPerLine = 5
 )
 
@@ -61,15 +61,18 @@ function Write-Lines ($lines, $offset) {
     }
     foreach ($line in $lines) {
         $X = 0
-        $width = $Host.UI.RawUI.WindowSize.Width
+        $width = $Host.UI.RawUI.WindowSize.Width  
         $offset = 0
-        try {
-            $_ = $line[$lines[2].Length + 5]
-            [int]$offset = ($width / 2) - ((($line -join " ").Length + 1) / 2)
-        }
-        catch {
+        $temp = $line[$lines[2].Length + 5]
+        if ($null -ne $temp) {
             [int]$offset = ($width / 2) - (($line.Length + 1) / 2)
+            Add-Content debug.log ("clause 1 -- Width: {0} Line Length: {1}" -f $width, $line.Length)
         }
+        else {
+            [int]$offset = ($width / 2) - ((($line -join " ").Length + 1) / 2)
+            Add-Content debug.log ("clause 2 -- Width: {0} Line Length: {1}" -f $width, (($line -join " ").Length + 1))
+        }
+        # write-host ("`n`n`n`n`n{0}" -f $offset)
         foreach ($word in $line) {
             if ($word -is [string]) {
                 $host.UI.RawUI.CursorPosition = @{ x = $X + $offset; y = $Y }
@@ -110,7 +113,7 @@ function Get-CursorPosition ($x, $y) {
 
 # declare some global variables
 $OFFSET_Y = 2
-$WORDS_PER_LINE = 10
+$WORDS_PER_LINE = $wordsPerLine
 $PC = 0
 $Y = 0
 $num_right_words = 0
