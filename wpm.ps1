@@ -102,10 +102,29 @@ function Write-Char ($x, $y, $letter, $master_string, $color) {
     }
 }
 
+# non blocking get keypress function
+function Get-KeyPress {
+    if ([Console]::KeyAvailable) {
+        return [Console]::ReadKey($true)
+    }
+}
+
 function Get-CursorPosition ($x, $y) {
 
 }
 
+function Show-Timer ($stopwatch, $last_second_value, $y_coord, $total_time) {
+    #print the timer
+    $width = $Host.UI.RawUI.WindowSize.Width
+    $time_s = ([timespan]::fromseconds($total_time.TotalSeconds) - 
+               [timespan]::fromseconds($StopWatch.Elapsed.TotalSeconds))
+    $time_str = ("{0:mm\:ss}" -f $time_s)
+    [int]$offset = ($width / 2) - ($time_str.Length  / 2)
+    $last_cursor_pos = $host.UI.RawUI.CursorPosition
+    $host.UI.RawUI.CursorPosition = @{ x = $offset; y = $y_coord }
+    write-host $time_str -NoNewLine
+    $host.UI.RawUI.CursorPosition = @{ x = $last_cursor_pos.X; y = $last_cursor_pos.Y }
+}
 <###################################################################################
                                   APPLICATION CODE
 ###################################################################################>
@@ -113,9 +132,11 @@ function Get-CursorPosition ($x, $y) {
 
 # declare some global variables
 $OFFSET_Y = 2
+$OFFSET_Y_TIMER = 0
 $WORDS_PER_LINE = $wordsPerLine
 $PC = 0
 $Y = 0
+$last_second_value = 100
 $num_right_words = 0
 $num_wrong_words = 0
 $recorded_colors = @()
@@ -139,8 +160,12 @@ Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
 $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y) }  
 
 # wait for any key to be pressed and star the test
-$key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-$use_already_existing_key_flag = $true
+# $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+$first_keypress = $null
+while(1) {
+    $first_keypress = Get-KeyPress
+    if ($null -ne $first_keypress) {break}
+}
 
 # now print the opening lines and start the test
 Clear-Host
@@ -151,116 +176,134 @@ $StopWatch.start()
 $timeout = New-TimeSpan -Seconds $time
 
 while($StopWatch.Elapsed -lt $timeout) {
-    if ($use_already_existing_key_flag) {
-        $use_already_existing_key_flag = $false
+    $key = $null
+    if ($null -ne $first_keypress) {
+        $key = $first_keypress
+        $first_keypress = $null
     } else {
-        $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+        $key = Get-KeyPress
     }
-    $incoming_letter = $key.character
+    if ($key) {
+        [string]$incoming_letter = $key.key
 
-    # if we get an enter, do nothing
-    if ($incoming_letter -eq 13) {
-        # pass
-    }
+        $incoming_letter = $incoming_letter.ToLower()
 
-    # if we get a backspace, do nothing
-    elseif ($incoming_letter -eq 8) {
-        # pass
-    }
-
-    # if we're at a newline
-    elseif ($master_string[$PC] -eq "`n") {
-        # dont keep going unless the incoming letter is a space,
-        # in which case, jump to the next line
-        if ($incoming_letter -ne " ") {
-            Write-Char ($PC - 1) ($Y + $OFFSET_Y) $incoming_letter $master_string
-            $recorded_colors[($PC - 1)] = @($incoming_letter, "Red")
-            # TODO: should only increment wrong words the first time. this will keep recording wrong words even though you only got one word wrong
-            $num_wrong_words++
-        } else {
-            # logic to jump to the new line
-            $PC = 0
-            if ($Y -eq 0) {
-                $Y++
+        if ($incoming_letter -eq "spacebar") {
+            $incoming_letter = " "
+        }
+        # if we get an enter, do nothing
+        if ($incoming_letter -eq "enter") {
+            # pass
+        }
+    
+        # if we get a backspace, do nothing
+        elseif ($incoming_letter -eq "backspace") {
+            # pass
+        }
+    
+        # if we're at a newline
+        elseif ($master_string[$PC] -eq "`n") {
+            # dont keep going unless the incoming letter is a space,
+            # in which case, jump to the next line
+            if ($incoming_letter -ne " ") {
+                Write-Char ($PC - 1) ($Y + $OFFSET_Y) $incoming_letter $master_string
+                $recorded_colors[($PC - 1)] = @($incoming_letter, "Red")
+                # TODO: should only increment wrong words the first time. this will keep recording wrong words even though you only got one word wrong
+                $num_wrong_words++
             } else {
-                clear-host
-                $line1 = $recorded_colors
-                $line2 = $line3
-                $line3 = Get-RandWords $word_list $WORDS_PER_LINE
-                Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
-            }
-            $recorded_colors = @()
-            $master_string = ($line2 -join " ") + "`n"
-            $num_right_words++
-            $width = $Host.UI.RawUI.WindowSize.Width
-            [int]$offset = ($width / 2) - ($master_string.Length  / 2)
-            $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y)}
-        }
-    }
-
-    # if we're at a space
-    elseif ($master_string[$PC] -eq " ") {
-        # don't keep going unless the incoming letter is a space
-        if ($incoming_letter -ne " ") {
-            Write-Char ($PC - 1) ($Y + $OFFSET_Y) $incoming_letter $master_string
-            $recorded_colors[($PC - 1)] = @($incoming_letter, "Red")
-            $num_wrong_words++
-        } else {
-            # keep going because we got a space
-            Write-Char $PC ($Y + $OFFSET_Y) $incoming_letter $master_string
-            $num_right_words++
-            $PC++
-            $recorded_colors += ,@(" ", "Yellow")
-        }
-    }
-
-    # if we're at a letter
-    elseif (($master_string[$PC] -ge 10) -or ($master_string[$PC] -le 122)) {
-        # if the incoming letter is a space, we want to jump to the next word
-        if ($incoming_letter -eq " ") {
-            # logic to jump to the next word
-            while (1) {
-                if ($master_string[$PC] -eq " ") {
-                    $PC++
-                    $recorded_colors += ,@(" ", "Yellow")
-                    break
-                } elseif ($master_string[$PC] -eq "`n") {
-                    $PC = 0
-                    if ($Y -eq 0) {
-                        $Y++
-                    } else {
-                        clear-host
-                        $line1 = $recorded_colors
-                        $line2 = $line3
-                        $line3 = Get-RandWords $word_list $WORDS_PER_LINE
-                        Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
-                    }
-                    $recorded_colors = @()
-                    $master_string = ($line2 -join " ") + "`n"
-                    $width = $Host.UI.RawUI.WindowSize.Width
-                    [int]$offset = ($width / 2) - ($master_string.Length  / 2)
-                    $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y) }
-                    break
+                # logic to jump to the new line
+                $PC = 0
+                if ($Y -eq 0) {
+                    $Y++
                 } else {
-                    # if the letter is wrong, write that shit in red
-                    Write-Char $PC ($Y + $OFFSET_Y) $master_string[$PC] $master_string "Red"
-                    $recorded_colors += ,@($master_string[$PC], "Red")
-                    $PC++
+                    clear-host
+                    Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER -total_time $timeout
+                    $line1 = $recorded_colors
+                    $line2 = $line3
+                    $line3 = Get-RandWords $word_list $WORDS_PER_LINE
+                    Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
                 }
+                $recorded_colors = @()
+                $master_string = ($line2 -join " ") + "`n"
+                $num_right_words++
+                $width = $Host.UI.RawUI.WindowSize.Width
+                [int]$offset = ($width / 2) - ($master_string.Length  / 2)
+                $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y)}
             }
-            $num_wrong_words++
-        
-        # if the incoming letter is a letter, just print it out
-        } else {
-            if ($incoming_letter -eq $master_string[$PC]) {
-                $recorded_colors += ,@($incoming_letter, "Yellow")
+        }
+    
+        # if we're at a space
+        elseif ($master_string[$PC] -eq " ") {
+            # don't keep going unless the incoming letter is a space
+            if ($incoming_letter -ne " ") {
+                Write-Char ($PC - 1) ($Y + $OFFSET_Y) $incoming_letter $master_string
+                $recorded_colors[($PC - 1)] = @($incoming_letter, "Red")
+                $num_wrong_words++
             } else {
-                $recorded_colors += ,@($incoming_letter, "Red")
+                # keep going because we got a space
+                Write-Char $PC ($Y + $OFFSET_Y) $incoming_letter $master_string
+                $num_right_words++
+                $PC++
+                $recorded_colors += ,@(" ", "Yellow")
             }
-            Write-Char $PC ($Y + $OFFSET_Y) $incoming_letter $master_string
-            $PC++
+        }
+    
+        # if we're at a letter
+        elseif (($master_string[$PC] -ge 10) -or ($master_string[$PC] -le 122)) {
+            # if the incoming letter is a space, we want to jump to the next word
+            if ($incoming_letter -eq " ") {
+                # logic to jump to the next word
+                while (1) {
+                    if ($master_string[$PC] -eq " ") {
+                        $PC++
+                        $recorded_colors += ,@(" ", "Yellow")
+                        break
+                    } elseif ($master_string[$PC] -eq "`n") {
+                        $PC = 0
+                        if ($Y -eq 0) {
+                            $Y++
+                        } else {
+                            clear-host
+                            Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER -total_time $timeout
+                            $line1 = $recorded_colors
+                            $line2 = $line3
+                            $line3 = Get-RandWords $word_list $WORDS_PER_LINE
+                            Write-Lines @($line1, $line2, $line3) -offset $OFFSET_Y
+                        }
+                        $recorded_colors = @()
+                        $master_string = ($line2 -join " ") + "`n"
+                        $width = $Host.UI.RawUI.WindowSize.Width
+                        [int]$offset = ($width / 2) - ($master_string.Length  / 2)
+                        $host.UI.RawUI.CursorPosition = @{ x = $offset; y = ($Y + $OFFSET_Y) }
+                        break
+                    } else {
+                        # if the letter is wrong, write that shit in red
+                        Write-Char $PC ($Y + $OFFSET_Y) $master_string[$PC] $master_string "Red"
+                        $recorded_colors += ,@($master_string[$PC], "Red")
+                        $PC++
+                    }
+                }
+                $num_wrong_words++
+            
+            # if the incoming letter is a letter, just print it out
+            } else {
+                if ($incoming_letter -eq $master_string[$PC]) {
+                    $recorded_colors += ,@($incoming_letter, "Yellow")
+                } else {
+                    $recorded_colors += ,@($incoming_letter, "Red")
+                }
+                Write-Char $PC ($Y + $OFFSET_Y) $incoming_letter $master_string
+                $PC++
+            }
         }
     }
+
+    # display the timer
+    $time = [int]$Stopwatch.Elapsed.TotalSeconds
+    if ($saved_time -ne $time) {
+        Show-Timer -stopwatch $StopWatch -y_coord $OFFSET_Y_TIMER -total_time $timeout
+    }
+    $saved_time = $time
 }
 
 write-host "`n`n"
@@ -270,14 +313,11 @@ $wpm = $num_right_words / $timeout.TotalMinutes
 
 <# 
     TODO:
-    - add feature to only start recording when the user starts typing (and add some feedback to indicate that)
     - show a timer showing how much time remaining
-    - make it notify you when caps lock is on
-    - have the user press a key at the end to quit
     - have the user press 'enter' at the end for more details on their performance
-    - add command line options for time ect
-    - add some cools graphs and analytics at the end 
     - refactor out the code that gets the position of the cursor
+
+    - maybe get rid of the cursor, but use a different color text for the position
 #>
 
 <#
