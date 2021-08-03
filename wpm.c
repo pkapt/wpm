@@ -15,6 +15,7 @@
 
 #define LINE_MAX_LEN 500
 #define LEN_WORD_BANK 271
+#define WORDS_PER_LINE 3
 
 char *word_bank[LEN_WORD_BANK] =
 {
@@ -51,10 +52,15 @@ char *word_bank[LEN_WORD_BANK] =
     "its", "our", "something", "those", "and", "but", "than", "because", "while"
 };
 
+typedef enum {
+    RED, 
+    YELLOW
+} color_t;
+
 typedef struct letter_s 
 {
-    unsigned short letter;
-    unsigned short color;
+    char letter;
+    color_t color;
 } letter_t;
 
 int get_chunk_of_random_words(int num_words, char ** word_bank, char * outbuff)
@@ -108,8 +114,6 @@ void clrscr() {
     printf("\e[1;1H\e[2J");
 }
 
-char * test_str_1 = "hello moto nice to meet you";
-char * test_str_2 = "fart time hello moto now go";
 
 int main() {
     // printf("hello, world");
@@ -119,11 +123,17 @@ int main() {
     bool quit = false;
     int pos_x = 0;
     int pos_y = 0;
+    int num_wrong_words = 0;
 
     char line[LINE_MAX_LEN] = {0};
 
     get_chunk_of_random_words(3, word_bank, line);
     printf("%s", line);
+    
+    char * line1 = "hello moto nice to meet you";
+    char * line2 = "fart time hello moto now go";
+    char line3[LINE_MAX_LEN] = {0};
+    letter_t recorded_letters[LINE_MAX_LEN] = {0};
 
     char * master_string = "hello moto nice to meet you";
     // write_lines(master_string);
@@ -153,6 +163,34 @@ int main() {
 
         else if (master_string[pos_x] == ASCII_NEWLINE)
         {
+            if (keypress != ASCII_SPACE)
+            {
+                // todo write the letter in the correct color
+                write_char((char) keypress, pos_x - 1, pos_y);
+                recorded_letters[pos_x - 1].color = RED;
+                recorded_letters[pos_x - 1].letter = (char) keypress;
+                num_wrong_words++;
+            }
+            else
+            {
+                pos_x = 0;
+                if (pos_y == 0)
+                {
+                    pos_y++;
+                }
+                else
+                {
+                    clrscr();
+                    // show timer
+                    line2 = line3;
+                    memset(line3, 0x00, sizeof(line3));
+                    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, line3);
+                    // write_color_coded_str(pos_y + Y_OFFSET, recorded_str);
+                    // write_line(line2, line3);
+                }
+
+                // write lines
+            }
 
         }
 
