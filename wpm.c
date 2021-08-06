@@ -53,8 +53,8 @@ char *word_bank[LEN_WORD_BANK] =
 };
 
 typedef enum {
-    COLOR_RED, 
-    COLOR_YELLOW
+    COLOR_RED = 10,
+    COLOR_YELLOW = 20
 } color_t;
 
 typedef struct letter_s 
@@ -62,6 +62,19 @@ typedef struct letter_s
     char letter;
     color_t color;
 } letter_t;
+
+typedef struct color_enc_line_s
+{
+    letter_t letters[LINE_MAX_LEN];
+    int len; 
+} color_enc_line_t;
+
+int color_enc_line_append(color_enc_line_t * line, letter_t c)
+{
+    line->letters[line->len].letter = c.letter;
+    line->letters[line->len].color = c.color;
+    line->len++;
+}
 
 int get_chunk_of_random_words(int num_words, char ** word_bank, char * outbuff)
 {
@@ -119,12 +132,24 @@ void clrscr()
 
 void write_line(char * line, int pos_x, int pos_y)
 {
-    
+    COORD pos;
+    pos.X = pos_x;
+    pos.Y = pos_y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+    printf("%s", line);
 }
 
-void write_color_encoded_line(letter_t * line, int pos_x, int pos_y)
+void write_color_encoded_line(color_enc_line_t * line, int pos_x, int pos_y)
 {
-    
+    COORD pos;
+    pos.X = pos_x;
+    pos.Y = pos_y;
+
+    for (int i = 0; i < line->len; i++)
+    {
+        write_char(line->letters[i].letter, pos_x, pos_y, line->letters[i].color);
+        pos_x++;
+    }
 }
 
 color_t get_letter_correctness(char incoming_letter, char master_letter) 
@@ -140,10 +165,7 @@ color_t get_letter_correctness(char incoming_letter, char master_letter)
 }
 
 int main() {
-    // printf("hello, world");
-
-    // start a timer
-    // while timer is not timed out
+    clrscr();
     bool quit = false;
     int pos_x = 0;
     int pos_y = 0;
@@ -151,143 +173,156 @@ int main() {
 
     char line[LINE_MAX_LEN] = {0};
 
-    get_chunk_of_random_words(3, word_bank, line);
-    printf("%s", line);
+    // get_chunk_of_random_words(3, word_bank, line);
+    // printf("%s", line);
     
     char * line1 = "hello moto nice to meet you";
     char * line2 = "fart time hello moto now go";
     char line3[LINE_MAX_LEN] = {0};
-    letter_t recorded_letters[LINE_MAX_LEN] = {0};
+    color_enc_line_t recorded_letters;
+
+    char c = 65;
+    for(int i = 0; i < 10; i++)
+    {
+        letter_t letter = 
+        {
+            .color = COLOR_RED,
+            .letter = c
+        };
+        color_enc_line_append(&recorded_letters, letter);
+        c++;
+    }
+
+    write_color_encoded_line(&recorded_letters, 100, 10);
 
     char * master_string = "hello moto nice to meet you";
     // write_lines(master_string);
     // printf("%s", master_string);
 
-    hidecursor();
+    // hidecursor();
 
-    while(!quit) 
-    {
-        int keypress = _getch();
-        write_char(keypress, 1, 1, COLOR_RED);
-        // peter piper picked ap peck of pickeld pepper
-        // printf("%u\n", keypress);
+    // while(!quit) 
+    // {
+    //     int keypress = _getch();
+    //     // write_char(keypress, 1, 1, COLOR_RED);
 
-        if (keypress == ASCII_BREAK)
-        {
-            quit = true;
-        }
+    //     if (keypress == ASCII_BREAK)
+    //     {
+    //         quit = true;
+    //     }
 
-        else if (keypress == ASCII_NEWLINE)
-        {
+    //     // write_line(master_string, 1, 1);
+    //     // else if (keypress == ASCII_NEWLINE)
+    //     // {
 
-        }
+    //     // }
 
-        else if (keypress == ASCII_BACKSPACE)
-        {
+    //     // else if (keypress == ASCII_BACKSPACE)
+    //     // {
 
-        }
+    //     // }
 
-        else if (master_string[pos_x] == ASCII_NEWLINE)
-        {
-            if (keypress != ASCII_SPACE)
-            {
-                // todo write the letter in the correct color
-                write_char(
-                    (char) keypress, 
-                    pos_x - 1, 
-                    pos_y, 
-                    get_letter_correctness(keypress, master_string[pos_x])
-                );
-                recorded_letters[pos_x - 1].color = COLOR_RED;
-                recorded_letters[pos_x - 1].letter = (char) keypress;
-                num_wrong_words++;
-            }
-            else
-            {
-                pos_x = 0;
-                if (pos_y == 0)
-                {
-                    pos_y++;
-                }
-                else
-                {
-                    clrscr();
-                    // show timer
-                    line2 = line3;
-                    memset(line3, 0x00, sizeof(line3));
-                    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, line3);
-                    // write_color_coded_str(pos_y + Y_OFFSET, recorded_str);
-                    // write_line(line2, line3);
-                }
+    //     // else if (master_string[pos_x] == ASCII_NEWLINE)
+    //     // {
+    //     //     if (keypress != ASCII_SPACE)
+    //     //     {
+    //     //         // todo write the letter in the correct color
+    //     //         write_char(
+    //     //             (char) keypress, 
+    //     //             pos_x - 1, 
+    //     //             pos_y, 
+    //     //             get_letter_correctness(keypress, master_string[pos_x])
+    //     //         );
+    //     //         recorded_letters[pos_x - 1].color = COLOR_RED;
+    //     //         recorded_letters[pos_x - 1].letter = (char) keypress;
+    //     //         num_wrong_words++;
+    //     //     }
+    //     //     else
+    //     //     {
+    //     //         pos_x = 0;
+    //     //         if (pos_y == 0)
+    //     //         {
+    //     //             pos_y++;
+    //     //         }
+    //     //         else
+    //     //         {
+    //     //             clrscr();
+    //     //             // show timer
+    //     //             line2 = line3;
+    //     //             memset(line3, 0x00, sizeof(line3));
+    //     //             get_chunk_of_random_words(WORDS_PER_LINE, word_bank, line3);
+    //     //             // write_color_coded_str(pos_y + Y_OFFSET, recorded_str);
+    //     //             // write_line(line2, line3);
+    //     //         }
 
-                // write lines
-            }
+    //     //         // write lines
+    //     //     }
 
-        }
+    //     // }
 
-        else if (master_string[pos_x] == ASCII_SPACE)
-        {
+    //     // else if (master_string[pos_x] == ASCII_SPACE)
+    //     // {
 
-        }
-        else if ((master_string[pos_x] >= ASCII_A) && (master_string[pos_x] <= ASCII_Z))
-        {
-            printf("here");
-            if (keypress == ASCII_SPACE)
-            {
-                // logic to jump to the next word
-                while (1) {
-                    if (master_string[pos_x] == ASCII_SPACE) 
-                    {
-                        pos_x++;
-                        // append the letter to recorded letter buffer in yellow
-                        break;
-                    }
-                    else if (master_string[pos_x] == ASCII_NEWLINE)
-                    {
-                        pos_x = 0;
-                        if (pos_y == 0)
-                        {
-                            pos_y++;
-                        }
-                        else
-                        {
-                            clrscr();
-                            // display the timer
-                            // line1 = recorded colors
-                            // line2 = line3
-                            // line3 = get random chunk of words
-                            // display the new lines
-                        }
-                        // recorded letter buffer = empty
-                        // master string = line2
-                        // set the cursor to the new position maybe
-                    }
-                    else
-                    {
-                        // if the letter is wrong, write it in red
-                        // write char in red
-                        // append the letter to the recorded letters buffer in red
-                        pos_x++;
-                    }
-                }
+    //     // }
+    //     // else if ((master_string[pos_x] >= ASCII_A) && (master_string[pos_x] <= ASCII_Z))
+    //     // {
+    //     //     printf("here");
+    //     //     if (keypress == ASCII_SPACE)
+    //     //     {
+    //     //         // logic to jump to the next word
+    //     //         while (1) {
+    //     //             if (master_string[pos_x] == ASCII_SPACE) 
+    //     //             {
+    //     //                 pos_x++;
+    //     //                 // append the letter to recorded letter buffer in yellow
+    //     //                 break;
+    //     //             }
+    //     //             else if (master_string[pos_x] == ASCII_NEWLINE)
+    //     //             {
+    //     //                 pos_x = 0;
+    //     //                 if (pos_y == 0)
+    //     //                 {
+    //     //                     pos_y++;
+    //     //                 }
+    //     //                 else
+    //     //                 {
+    //     //                     clrscr();
+    //     //                     // display the timer
+    //     //                     // line1 = recorded colors
+    //     //                     // line2 = line3
+    //     //                     // line3 = get random chunk of words
+    //     //                     // display the new lines
+    //     //                 }
+    //     //                 // recorded letter buffer = empty
+    //     //                 // master string = line2
+    //     //                 // set the cursor to the new position maybe
+    //     //             }
+    //     //             else
+    //     //             {
+    //     //                 // if the letter is wrong, write it in red
+    //     //                 // write char in red
+    //     //                 // append the letter to the recorded letters buffer in red
+    //     //                 pos_x++;
+    //     //             }
+    //     //         }
 
-            } 
-            else
-            {
-                if (keypress == master_string[pos_x])
-                {
-                    // append the letter to the recorded letters buffer in yello
-                } 
-                else
-                {
-                    // append the letter to the recorded letter buffer in red
-                }
-                write_char(keypress, 15, 5, COLOR_RED);
-                pos_x++;
-            }
-        }
-        printf("%u ASCII_A ASCII_Z\n", master_string[pos_x]);
+    //     //     } 
+    //     //     else
+    //     //     {
+    //     //         if (keypress == master_string[pos_x])
+    //     //         {
+    //     //             // append the letter to the recorded letters buffer in yello
+    //     //         } 
+    //     //         else
+    //     //         {
+    //     //             // append the letter to the recorded letter buffer in red
+    //     //         }
+    //     //         write_char(keypress, 15, 5, COLOR_RED);
+    //     //         pos_x++;
+    //     //     }
+    //     // }
+    //     // printf("%u ASCII_A ASCII_Z\n", master_string[pos_x]);
 
-    }
+    // }
     return 0;
 }
