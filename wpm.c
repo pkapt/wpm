@@ -305,47 +305,46 @@ int main() {
                     }
                     else
                     {
-                        if (keypress == master_string[pos_x])
+                        write_char((char) keypress, pos_x, pos_y, COLOR_RED);
+                        letter_t letter = 
                         {
-                            letter_t letter = 
-                            {
-                                .color = COLOR_YELLOW,
-                                .letter = (char) keypress
-                            };
-                            color_enc_line_append(&recorded_letters, letter, 0);
-                        }
-                        else
-                        {
-                            letter_t letter = 
-                            {
-                                .color = COLOR_RED,
-                                .letter = (char) keypress
-                            };
-                            color_enc_line_append(&recorded_letters, letter, 0);
-                        }
-                        write_char((char) keypress, pos_x, pos_y, 
-                            get_letter_correctness(keypress, master_string[pos_x]));
+                            .color = COLOR_RED,
+                            .letter = (char) keypress
+                        };
+                        color_enc_line_append(&recorded_letters, letter, 0);
                         pos_x++;
                     }
+                    num_wrong_words++;
                 }
+
 
             } 
             else
             {
                 if (keypress == master_string[pos_x])
                 {
-                    // append the letter to the recorded letters buffer in yello
-                } 
+                    letter_t letter = 
+                    {
+                        .color = COLOR_YELLOW,
+                        .letter = (char) keypress
+                    };
+                    color_enc_line_append(&recorded_letters, letter, 0);
+                }
                 else
                 {
-                    // append the letter to the recorded letter buffer in red
+                    letter_t letter = 
+                    {
+                        .color = COLOR_RED,
+                        .letter = (char) keypress
+                    };
+                    color_enc_line_append(&recorded_letters, letter, 0);
                 }
-                write_char(keypress, 15, 5, COLOR_RED);
+                write_char((char) keypress, pos_x, pos_y, 
+                    get_letter_correctness(keypress, master_string[pos_x]));
                 pos_x++;
             }
         }
-        printf("%u ASCII_A ASCII_Z\n", master_string[pos_x]);
-
+        //display the time
     }
     return 0;
 }
