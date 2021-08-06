@@ -119,7 +119,12 @@ void clrscr()
 
 void write_line(char * line, int pos_x, int pos_y)
 {
+    
+}
 
+void write_color_encoded_line(letter_t * line, int pos_x, int pos_y)
+{
+    
 }
 
 color_t get_letter_correctness(char incoming_letter, char master_letter) 
