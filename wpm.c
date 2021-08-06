@@ -53,8 +53,8 @@ char *word_bank[LEN_WORD_BANK] =
 };
 
 typedef enum {
-    RED, 
-    YELLOW
+    COLOR_RED, 
+    COLOR_YELLOW
 } color_t;
 
 typedef struct letter_s 
@@ -93,11 +93,13 @@ void hidecursor()
    SetConsoleCursorInfo(consoleHandle, &info);
 }
 
-int write_char(char c, int x, int y)
+int write_char(char c, int x, int y, color_t color)
 {
     COORD pos;
     pos.X = x;
     pos.Y = y;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 10);
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
     printf("%c", c);
 }
@@ -110,10 +112,27 @@ int write_lines(char * line) {
     printf("%s", line);
 }
 
-void clrscr() {
+void clrscr() 
+{
     printf("\e[1;1H\e[2J");
 }
 
+void write_line(char * line, int pos_x, int pos_y)
+{
+
+}
+
+color_t get_letter_correctness(char incoming_letter, char master_letter) 
+{
+    if (incoming_letter == master_letter) 
+    {
+        return COLOR_YELLOW;
+    }
+    else
+    {
+        return COLOR_RED;
+    }
+}
 
 int main() {
     // printf("hello, world");
@@ -144,6 +163,8 @@ int main() {
     while(!quit) 
     {
         int keypress = _getch();
+        write_char(keypress, 1, 1, COLOR_RED);
+        // peter piper picked ap peck of pickeld pepper
         // printf("%u\n", keypress);
 
         if (keypress == ASCII_BREAK)
@@ -166,8 +187,13 @@ int main() {
             if (keypress != ASCII_SPACE)
             {
                 // todo write the letter in the correct color
-                write_char((char) keypress, pos_x - 1, pos_y);
-                recorded_letters[pos_x - 1].color = RED;
+                write_char(
+                    (char) keypress, 
+                    pos_x - 1, 
+                    pos_y, 
+                    get_letter_correctness(keypress, master_string[pos_x])
+                );
+                recorded_letters[pos_x - 1].color = COLOR_RED;
                 recorded_letters[pos_x - 1].letter = (char) keypress;
                 num_wrong_words++;
             }
@@ -251,7 +277,7 @@ int main() {
                 {
                     // append the letter to the recorded letter buffer in red
                 }
-                write_char(keypress, 15, 5);
+                write_char(keypress, 15, 5, COLOR_RED);
                 pos_x++;
             }
         }
