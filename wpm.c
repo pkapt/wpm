@@ -54,7 +54,8 @@ char *word_bank[LEN_WORD_BANK] =
 
 typedef enum {
     COLOR_RED = 4,
-    COLOR_YELLOW = 6
+    COLOR_YELLOW = 6,
+    COLOR_WHITE = 7
 } color_t;
 
 typedef struct letter_s 
@@ -112,7 +113,7 @@ int write_char(char c, int x, int y, color_t color)
     pos.Y = y;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, color);
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+    SetConsoleCursorPosition(hConsole, pos);
     printf("%c", c);
 }
 
@@ -121,12 +122,14 @@ void clrscr()
     printf("\e[1;1H\e[2J");
 }
 
-void write_line(char * line, int pos_x, int pos_y)
+void write_line(char * line, int pos_x, int pos_y, color_t color)
 {
     COORD pos;
     pos.X = pos_x;
     pos.Y = pos_y;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, color);
+    SetConsoleCursorPosition(hConsole, pos);
     printf("%s", line);
 }
 
@@ -143,11 +146,11 @@ void write_color_encoded_line(color_enc_line_t * line, int pos_x, int pos_y)
     }
 }
 
-int write_lines(color_enc_line_t * line_enc, char * line1, char * line2, int num_lines, int pos_x, int pos_y)
+int write_lines(color_enc_line_t * line_enc, char * line1, char * line2, int pos_x, int pos_y, color_t cline1, color_t cline2)
 {
     write_color_encoded_line(line_enc, pos_x, pos_y);
-    write_line(line1, pos_x, pos_y + 1);
-    write_line(line2, pos_x, pos_y + 2);
+    write_line(line1, pos_x, pos_y + 1, COLOR_WHITE);
+    write_line(line2, pos_x, pos_y + 2, COLOR_WHITE);
 }
 
 color_t get_letter_correctness(char incoming_letter, char master_letter) 
@@ -183,9 +186,9 @@ int main() {
     color_enc_line_t recorded_letters;
     memset(&recorded_letters, 0x00, sizeof(color_enc_line_t));
 
-    write_line(pline1, pos_x, pos_y);
-    write_line(pline2, pos_x, pos_y + 1);
-    write_line(pline3, pos_x, pos_y + 2);
+    write_line(pline1, pos_x, pos_y, COLOR_WHITE);
+    write_line(pline2, pos_x, pos_y + 1, COLOR_WHITE);
+    write_line(pline3, pos_x, pos_y + 2, COLOR_WHITE);
 
     char * master_string = pline1;
 
@@ -237,7 +240,7 @@ int main() {
                     memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
                     memset(pline3, 0x00, sizeof(*pline3));
                     get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
-                    write_lines(&recorded_letters, pline2, pline3, 3, pos_x, pos_y); // reset color position to write before you do this
+                    write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE); // reset color position to write before you do this
                 }
                 memset(&recorded_letters, 0x00, sizeof(recorded_letters));
                 master_string = pline2;
@@ -303,7 +306,7 @@ int main() {
                 //             pline2 = pline3;
                 //             memset(pline3, 0x00, sizeof(pline3));
                 //             get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
-                //             write_lines(&recorded_letters, pline2, pline3, 3, pos_x, pos_y);
+                //             write_lines(&recorded_letters, pline2, pline3, 0, pos_y, COLOR_WHITE, COLOR_WHITE);
                 //         }
                 //         memset(&recorded_letters, 0x00, sizeof(recorded_letters));
                 //         master_string = pline2;
