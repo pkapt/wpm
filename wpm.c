@@ -167,7 +167,7 @@ color_t get_letter_correctness(char incoming_letter, char master_letter)
 
 int main() {
     clrscr();
-    srand(time(NULL)); // initialie random generator for fetching random words
+    srand(time(NULL)); // initialize random generator for fetching random words
     bool quit = false;
     int pos_x = 0;
     int pos_y = 0;
@@ -197,7 +197,6 @@ int main() {
     while(!quit) 
     {
         int keypress = _getch();
-        // write_char(keypress, 1, 1, COLOR_RED);
 
         if (keypress == ASCII_BREAK)
         {
@@ -240,11 +239,10 @@ int main() {
                     memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
                     memset(pline3, 0x00, sizeof(*pline3));
                     get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
-                    write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE); // reset color position to write before you do this
+                    write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE);
                 }
                 memset(&recorded_letters, 0x00, sizeof(recorded_letters));
                 master_string = pline2;
-                // set the cursor position to the right place
             }
 
         }
@@ -280,52 +278,52 @@ int main() {
         {
             if (keypress == ASCII_SPACE)
             {
-                // while (1) {
-                //     if (master_string[pos_x] == ASCII_SPACE) 
-                //     {
-                //         pos_x++;
-                //         letter_t letter = 
-                //         {
-                //             .color = COLOR_YELLOW,
-                //             .letter = (char) keypress
-                //         };
-                //         color_enc_line_append(&recorded_letters, letter, 0);
-                //         break;
-                //     }
-                //     else if (master_string[pos_x] == ASCII_NEWLINE)
-                //     {
-                //         pos_x = 0;
-                //         if (pos_y == 0)
-                //         {
-                //             pos_y++;
-                //         }
-                //         else
-                //         {
-                //             clrscr();
-                //             // show timer
-                //             pline2 = pline3;
-                //             memset(pline3, 0x00, sizeof(pline3));
-                //             get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
-                //             write_lines(&recorded_letters, pline2, pline3, 0, pos_y, COLOR_WHITE, COLOR_WHITE);
-                //         }
-                //         memset(&recorded_letters, 0x00, sizeof(recorded_letters));
-                //         master_string = pline2;
-                //         // set the cursor position to the right place
-                //         break;
-                //     }
-                //     else
-                //     {
-                //         write_char((char) keypress, pos_x, pos_y, COLOR_RED);
-                //         letter_t letter = 
-                //         {
-                //             .color = COLOR_RED,
-                //             .letter = (char) keypress
-                //         };
-                //         color_enc_line_append(&recorded_letters, letter, 0);
-                //         pos_x++;
-                //     }
-                //     num_wrong_words++;
-                // }
+                while (1) {
+                    if (master_string[pos_x] == ASCII_SPACE) 
+                    {
+                        pos_x++;
+                        letter_t letter = 
+                        {
+                            .color = COLOR_YELLOW,
+                            .letter = (char) keypress
+                        };
+                        color_enc_line_append(&recorded_letters, letter, 0);
+                        break;
+                    }
+                    else if (master_string[pos_x] == ASCII_NEWLINE)
+                    {
+                        pos_x = 0;
+                        if (pos_y == 0)
+                        {
+                            pos_y++;
+                        }
+                        else
+                        {
+                            clrscr();
+                            // show timer
+                            int size = sizeof(pline1);
+                            memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
+                            memset(pline3, 0x00, sizeof(*pline3));
+                            get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
+                            write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE);
+                        }
+                        memset(&recorded_letters, 0x00, sizeof(recorded_letters));
+                        master_string = pline2;
+                        break;
+                    }
+                    else
+                    {
+                        letter_t letter = 
+                        {
+                            .color = COLOR_RED,
+                            .letter = master_string[pos_x]
+                        };
+                        color_enc_line_append(&recorded_letters, letter, 0);
+                        write_char(master_string[pos_x], pos_x, pos_y, COLOR_RED);
+                        pos_x++;
+                    }
+                    num_wrong_words++;
+                }
             }
             else
             {
