@@ -15,7 +15,7 @@
 
 #define LINE_MAX_LEN 500
 #define LEN_WORD_BANK 271
-#define WORDS_PER_LINE 3
+#define WORDS_PER_LINE 1
 
 char *word_bank[LEN_WORD_BANK] =
 {
@@ -53,8 +53,8 @@ char *word_bank[LEN_WORD_BANK] =
 };
 
 typedef enum {
-    COLOR_RED = 10,
-    COLOR_YELLOW = 20
+    COLOR_RED = 4,
+    COLOR_YELLOW = 6
 } color_t;
 
 typedef struct letter_s 
@@ -79,7 +79,6 @@ int color_enc_line_append(color_enc_line_t * line, letter_t c, int index_offset)
 int get_chunk_of_random_words(int num_words, char ** word_bank, char * outbuff)
 {
     int chars_written = 0;
-    srand(time(NULL));
     // todo maybe make this safer by checking that you're not overflowing the buffer outbuff
     for (int i = 0; i < num_words; i++)
     {
@@ -87,7 +86,7 @@ int get_chunk_of_random_words(int num_words, char ** word_bank, char * outbuff)
         char * rand_str = word_bank[j];
         chars_written += snprintf(outbuff + chars_written, strlen(rand_str) + 2, "%s ", rand_str);
     }
-    memset(outbuff + strlen(outbuff) - 1, 0x00, 1);
+    memset(outbuff + strlen(outbuff) - 1, ASCII_NEWLINE, 1);
 }
 
 int getch_noblock() {
@@ -112,7 +111,7 @@ int write_char(char c, int x, int y, color_t color)
     pos.X = x;
     pos.Y = y;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hConsole, 10);
+    SetConsoleTextAttribute(hConsole, color);
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
     printf("%c", c);
 }
@@ -165,23 +164,30 @@ color_t get_letter_correctness(char incoming_letter, char master_letter)
 
 int main() {
     clrscr();
+    srand(time(NULL)); // initialie random generator for fetching random words
     bool quit = false;
     int pos_x = 0;
     int pos_y = 0;
     int num_wrong_words = 0;
     int num_right_words = 0;
 
-    char line[LINE_MAX_LEN] = {0};
-
-    // get_chunk_of_random_words(3, word_bank, line);
-    // printf("%s", line);
-    
-    char * line1 = "hello moto nice to meet you";
-    char * line2 = "fart time hello moto now go";
+    char line1[LINE_MAX_LEN] = {0};
+    char line2[LINE_MAX_LEN] = {0};
     char line3[LINE_MAX_LEN] = {0};
+    char * pline1 = line1;
+    char * pline2 = line2;
+    char * pline3 = line3;
+    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline1);
+    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline2);
+    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
     color_enc_line_t recorded_letters;
+    memset(&recorded_letters, 0x00, sizeof(color_enc_line_t));
 
-    char * master_string = "hello moto nice to meet you";
+    write_line(pline1, pos_x, pos_y);
+    write_line(pline2, pos_x, pos_y + 1);
+    write_line(pline3, pos_x, pos_y + 2);
+
+    char * master_string = pline1;
 
     hidecursor();
 
@@ -227,13 +233,14 @@ int main() {
                 {
                     clrscr();
                     // show timer
-                    line2 = line3;
-                    memset(line3, 0x00, sizeof(line3));
-                    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, line3);
-                    write_lines(&recorded_letters, line1, line2, 3, pos_x, pos_y);
+                    int size = sizeof(pline1);
+                    memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
+                    memset(pline3, 0x00, sizeof(*pline3));
+                    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
+                    write_lines(&recorded_letters, pline2, pline3, 3, pos_x, pos_y); // reset color position to write before you do this
                 }
                 memset(&recorded_letters, 0x00, sizeof(recorded_letters));
-                master_string = line2;
+                master_string = pline2;
                 // set the cursor position to the right place
             }
 
@@ -270,55 +277,53 @@ int main() {
         {
             if (keypress == ASCII_SPACE)
             {
-                while (1) {
-                    if (master_string[pos_x] == ASCII_SPACE) 
-                    {
-                        pos_x++;
-                        letter_t letter = 
-                        {
-                            .color = COLOR_YELLOW,
-                            .letter = (char) keypress
-                        };
-                        color_enc_line_append(&recorded_letters, letter, 0);
-                        break;
-                    }
-                    else if (master_string[pos_x] == ASCII_NEWLINE)
-                    {
-                        pos_x = 0;
-                        if (pos_y == 0)
-                        {
-                            pos_y++;
-                        }
-                        else
-                        {
-                            clrscr();
-                            // show timer
-                            line2 = line3;
-                            memset(line3, 0x00, sizeof(line3));
-                            get_chunk_of_random_words(WORDS_PER_LINE, word_bank, line3);
-                            write_lines(&recorded_letters, line1, line2, 3, pos_x, pos_y);
-                        }
-                        memset(&recorded_letters, 0x00, sizeof(recorded_letters));
-                        master_string = line2;
-                        // set the cursor position to the right place
-                        break;
-                    }
-                    else
-                    {
-                        write_char((char) keypress, pos_x, pos_y, COLOR_RED);
-                        letter_t letter = 
-                        {
-                            .color = COLOR_RED,
-                            .letter = (char) keypress
-                        };
-                        color_enc_line_append(&recorded_letters, letter, 0);
-                        pos_x++;
-                    }
-                    num_wrong_words++;
-                }
-
-
-            } 
+                // while (1) {
+                //     if (master_string[pos_x] == ASCII_SPACE) 
+                //     {
+                //         pos_x++;
+                //         letter_t letter = 
+                //         {
+                //             .color = COLOR_YELLOW,
+                //             .letter = (char) keypress
+                //         };
+                //         color_enc_line_append(&recorded_letters, letter, 0);
+                //         break;
+                //     }
+                //     else if (master_string[pos_x] == ASCII_NEWLINE)
+                //     {
+                //         pos_x = 0;
+                //         if (pos_y == 0)
+                //         {
+                //             pos_y++;
+                //         }
+                //         else
+                //         {
+                //             clrscr();
+                //             // show timer
+                //             pline2 = pline3;
+                //             memset(pline3, 0x00, sizeof(pline3));
+                //             get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
+                //             write_lines(&recorded_letters, pline2, pline3, 3, pos_x, pos_y);
+                //         }
+                //         memset(&recorded_letters, 0x00, sizeof(recorded_letters));
+                //         master_string = pline2;
+                //         // set the cursor position to the right place
+                //         break;
+                //     }
+                //     else
+                //     {
+                //         write_char((char) keypress, pos_x, pos_y, COLOR_RED);
+                //         letter_t letter = 
+                //         {
+                //             .color = COLOR_RED,
+                //             .letter = (char) keypress
+                //         };
+                //         color_enc_line_append(&recorded_letters, letter, 0);
+                //         pos_x++;
+                //     }
+                //     num_wrong_words++;
+                // }
+            }
             else
             {
                 if (keypress == master_string[pos_x])
@@ -339,12 +344,11 @@ int main() {
                     };
                     color_enc_line_append(&recorded_letters, letter, 0);
                 }
-                write_char((char) keypress, pos_x, pos_y, 
-                    get_letter_correctness(keypress, master_string[pos_x]));
+                color_t letter_color = get_letter_correctness(keypress, master_string[pos_x]);
+                write_char((char) keypress, pos_x, pos_y, letter_color);
                 pos_x++;
             }
         }
-        //display the time
     }
     return 0;
 }
