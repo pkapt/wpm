@@ -13,7 +13,6 @@
 #define ASCII_A 97
 #define ASCII_Z 122
 
-// #define LINE_MAX_LEN 500
 #define LEN_WORD_BANK 271
 #define WORDS_PER_LINE 1
 
@@ -52,31 +51,6 @@ char *word_bank[LEN_WORD_BANK] =
     "its", "our", "something", "those", "and", "but", "than", "because", "while"
 };
 
-// typedef enum {
-//     COLOR_RED = 4,
-//     COLOR_YELLOW = 6,
-//     COLOR_WHITE = 7
-// } color_t;
-
-// typedef struct letter_s 
-// {
-//     char letter;
-//     color_t color;
-// } letter_t;
-
-// typedef struct color_enc_line_s
-// {
-//     letter_t letters[LINE_MAX_LEN];
-//     int len; 
-// } color_enc_line_t;
-
-// int color_enc_line_append(color_enc_line_t * line, letter_t c, int index_offset)
-// {
-//     line->letters[line->len + index_offset].letter = c.letter;
-//     line->letters[line->len + index_offset].color = c.color;
-//     line->len++;
-// }
-
 int get_chunk_of_random_words(int num_words, char ** word_bank, char * outbuff)
 {
     int chars_written = 0;
@@ -96,55 +70,6 @@ int getch_noblock() {
     else
         return -1;
 }
-
-// void hidecursor()
-// {
-//    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-//    CONSOLE_CURSOR_INFO info;
-//    info.dwSize = 100;
-//    info.bVisible = FALSE;
-//    SetConsoleCursorInfo(consoleHandle, &info);
-// }
-
-// int write_char(char c, int x, int y, color_t color)
-// {
-//     COORD pos;
-//     pos.X = x;
-//     pos.Y = y;
-//     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-//     SetConsoleTextAttribute(hConsole, color);
-//     SetConsoleCursorPosition(hConsole, pos);
-//     printf("%c", c);
-// }
-
-// void clrscr() 
-// {
-//     printf("\e[1;1H\e[2J");
-// }
-
-// void write_line(char * line, int pos_x, int pos_y, color_t color)
-// {
-//     COORD pos;
-//     pos.X = pos_x;
-//     pos.Y = pos_y;
-//     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-//     SetConsoleTextAttribute(hConsole, color);
-//     SetConsoleCursorPosition(hConsole, pos);
-//     printf("%s", line);
-// }
-
-// void write_color_encoded_line(color_enc_line_t * line, int pos_x, int pos_y)
-// {
-//     COORD pos;
-//     pos.X = pos_x;
-//     pos.Y = pos_y;
-
-//     for (int i = 0; i < line->len; i++)
-//     {
-//         write_char(line->letters[i].letter, pos_x, pos_y, line->letters[i].color);
-//         pos_x++;
-//     }
-// }
 
 int write_lines(color_enc_line_t * line_enc, char * line1, char * line2, int pos_x, int pos_y, color_t cline1, color_t cline2)
 {
