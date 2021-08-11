@@ -18,7 +18,7 @@
 
 #define LEN_WORD_BANK 271
 #define WORDS_PER_LINE 10
-#define TIMEOUT 300000
+#define TIMEOUT 3000
 
 char *word_bank[LEN_WORD_BANK] =
 {
@@ -106,12 +106,12 @@ bool quit_flag = false;
 void exit_program()
 {
     quit_flag = true;
+    cleanupConsole();
 }
 
 int main() {
     ConsoleClearScreen();
     srand(time(NULL)); // initialize random generator for fetching random words
-    UINT_PTR timerid = SetTimer(NULL, 0, 3000, &exit_program);
     bool quit = false;
     int pos_x = 0;
     int pos_y = 0;
@@ -138,132 +138,152 @@ int main() {
 
     ConsoleHideCursor();
 
+    LARGE_INTEGER frequency;        // ticks per second
+    LARGE_INTEGER startTimeTicks, currentTimeTicks;           // ticks
+    double elapsedTime;
+
+    // get ticks per second
+    QueryPerformanceFrequency(&frequency);
+
+    // start timer
+    QueryPerformanceCounter(&startTimeTicks);
+
     while(!quit_flag) 
     {
-        int keypress = _getch();
+        int keypress = getch_noblock();
 
-        if (keypress == ASCII_BREAK)
+        if (keypress != -1)
         {
-            cleanupConsole();
-            exit_program();
-        }
-        else if (keypress == ASCII_NEWLINE)
-        {
-
-        }
-        else if (keypress == ASCII_BACKSPACE)
-        {
-
-        }
-        else if (master_string[pos_x] == ASCII_NEWLINE)
-        {
-            if (keypress != ASCII_SPACE)
+            if (keypress == ASCII_BREAK)
             {
-                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
-                letter_t letter = {.color = COLOR_RED, .letter = (char)keypress};
-                ColorEncodedLineAppend(&recorded_letters, letter, 0);
-                num_wrong_words++;
+                exit_program();
             }
-            else
+            else if (keypress == ASCII_NEWLINE)
             {
-                pos_x = 0;
-                if (pos_y == 0)
+
+            }
+            else if (keypress == ASCII_BACKSPACE)
+            {
+
+            }
+            else if (master_string[pos_x] == ASCII_NEWLINE)
+            {
+                if (keypress != ASCII_SPACE)
                 {
-                    pos_y++;
+                    ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
+                    letter_t letter = {.color = COLOR_RED, .letter = (char)keypress};
+                    ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                    num_wrong_words++;
                 }
                 else
                 {
-                    ConsoleClearScreen();
-                    // show timer
-                    int size = sizeof(pline1);
-                    memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
-                    memset(pline3, 0x00, sizeof(*pline3));
-                    get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
-                    write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE);
-                }
-                memset(&recorded_letters, 0x00, sizeof(recorded_letters));
-                master_string = pline2;
-            }
-
-        }
-        else if (master_string[pos_x] == ASCII_SPACE)
-        {
-            if (keypress != ASCII_SPACE)
-            {
-                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
-                letter_t letter = {.color = COLOR_RED,.letter = (char) keypress};
-                ColorEncodedLineAppend(&recorded_letters, letter, -1);
-                num_wrong_words++;
-            }
-            else
-            {
-                ConsoleWriteChar((char) keypress, pos_x, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
-                letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
-                ColorEncodedLineAppend(&recorded_letters, letter, 0);
-                num_right_words++;
-                pos_x++;
-            }
-        }
-        else if ((master_string[pos_x] >= ASCII_A) && (master_string[pos_x] <= ASCII_Z))
-        {
-            if (keypress == ASCII_SPACE)
-            {
-                while (1) {
-                    if (master_string[pos_x] == ASCII_SPACE) 
+                    pos_x = 0;
+                    if (pos_y == 0)
                     {
-                        pos_x++;
-                        letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
-                        ColorEncodedLineAppend(&recorded_letters, letter, 0);
-                        break;
-                    }
-                    else if (master_string[pos_x] == ASCII_NEWLINE)
-                    {
-                        pos_x = 0;
-                        if (pos_y == 0)
-                        {
-                            pos_y++;
-                        }
-                        else
-                        {
-                            ConsoleClearScreen();
-                            // show timer
-                            int size = sizeof(pline1);
-                            memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
-                            memset(pline3, 0x00, sizeof(*pline3));
-                            get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
-                            write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE);
-                        }
-                        memset(&recorded_letters, 0x00, sizeof(recorded_letters));
-                        master_string = pline2;
-                        break;
+                        pos_y++;
                     }
                     else
                     {
-                        letter_t letter = {.color = COLOR_RED,.letter = master_string[pos_x]};
-                        ColorEncodedLineAppend(&recorded_letters, letter, 0);
-                        ConsoleWriteChar(master_string[pos_x], pos_x, pos_y, COLOR_RED);
-                        pos_x++;
+                        ConsoleClearScreen();
+                        // show timer
+                        int size = sizeof(pline1);
+                        memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
+                        memset(pline3, 0x00, sizeof(*pline3));
+                        get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
+                        write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE);
                     }
-                    num_wrong_words++;
+                    memset(&recorded_letters, 0x00, sizeof(recorded_letters));
+                    master_string = pline2;
                 }
+
             }
-            else
+            else if (master_string[pos_x] == ASCII_SPACE)
             {
-                if (keypress == master_string[pos_x])
+                if (keypress != ASCII_SPACE)
                 {
-                    letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
-                    ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                    ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
+                    letter_t letter = {.color = COLOR_RED,.letter = (char) keypress};
+                    ColorEncodedLineAppend(&recorded_letters, letter, -1);
+                    num_wrong_words++;
                 }
                 else
                 {
-                    letter_t letter = {.color = COLOR_RED,.letter = (char) keypress};
+                    ConsoleWriteChar((char) keypress, pos_x, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
+                    letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
                     ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                    num_right_words++;
+                    pos_x++;
                 }
-                color_t letter_color = get_letter_correctness(keypress, master_string[pos_x]);
-                ConsoleWriteChar((char) keypress, pos_x, pos_y, letter_color);
-                pos_x++;
+            }
+            else if ((master_string[pos_x] >= ASCII_A) && (master_string[pos_x] <= ASCII_Z))
+            {
+                if (keypress == ASCII_SPACE)
+                {
+                    while (1) {
+                        if (master_string[pos_x] == ASCII_SPACE) 
+                        {
+                            pos_x++;
+                            letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
+                            ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                            break;
+                        }
+                        else if (master_string[pos_x] == ASCII_NEWLINE)
+                        {
+                            pos_x = 0;
+                            if (pos_y == 0)
+                            {
+                                pos_y++;
+                            }
+                            else
+                            {
+                                ConsoleClearScreen();
+                                // show timer
+                                int size = sizeof(pline1);
+                                memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
+                                memset(pline3, 0x00, sizeof(*pline3));
+                                get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
+                                write_lines(&recorded_letters, pline2, pline3, 0, 0, COLOR_WHITE, COLOR_WHITE);
+                            }
+                            memset(&recorded_letters, 0x00, sizeof(recorded_letters));
+                            master_string = pline2;
+                            break;
+                        }
+                        else
+                        {
+                            letter_t letter = {.color = COLOR_RED,.letter = master_string[pos_x]};
+                            ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                            ConsoleWriteChar(master_string[pos_x], pos_x, pos_y, COLOR_RED);
+                            pos_x++;
+                        }
+                        num_wrong_words++;
+                    }
+                }
+                else
+                {
+                    if (keypress == master_string[pos_x])
+                    {
+                        letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
+                        ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                    }
+                    else
+                    {
+                        letter_t letter = {.color = COLOR_RED,.letter = (char) keypress};
+                        ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                    }
+                    color_t letter_color = get_letter_correctness(keypress, master_string[pos_x]);
+                    ConsoleWriteChar((char) keypress, pos_x, pos_y, letter_color);
+                    pos_x++;
+                }
             }
         }
+        
+        QueryPerformanceCounter(&currentTimeTicks);
+        elapsedTime = (currentTimeTicks.QuadPart - startTimeTicks.QuadPart) * 1000.0 / frequency.QuadPart;
+        if (elapsedTime >= TIMEOUT)
+        {
+            exit_program();
+        }
     }
+
     return 0;
 }
