@@ -1,10 +1,9 @@
-#include <stdio.h>
 #include <string.h>
-#include <conio.h>
 #include <stdbool.h>
 #include <windows.h>
-#include <stdlib.h>
-#include <time.h>
+#include "src/line.h"
+#include "src/console.h"
+#include "src/color.h"
 
 #define ASCII_BREAK 3
 #define ASCII_SPACE 32
@@ -73,7 +72,7 @@ int getch_noblock() {
 
 int write_lines(color_enc_line_t * line_enc, char * line1, char * line2, int pos_x, int pos_y, color_t cline1, color_t cline2)
 {
-    write_color_encoded_line(line_enc, pos_x, pos_y);
+    ColorEncodedLineWrite(line_enc, pos_x, pos_y);
     write_line(line1, pos_x, pos_y + 1, COLOR_WHITE);
     write_line(line2, pos_x, pos_y + 2, COLOR_WHITE);
 }
@@ -91,7 +90,7 @@ color_t get_letter_correctness(char incoming_letter, char master_letter)
 }
 
 int main() {
-    clrscr();
+    ConsoleClearScreen();
     srand(time(NULL)); // initialize random generator for fetching random words
     bool quit = false;
     int pos_x = 0;
@@ -117,7 +116,7 @@ int main() {
 
     char * master_string = pline1;
 
-    hidecursor();
+    ConsoleHideCursor();
 
     while(!quit) 
     {
@@ -139,14 +138,14 @@ int main() {
         {
             if (keypress != ASCII_SPACE)
             {
-                write_char((char) keypress, pos_x - 1, pos_y, 
+                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, 
                     get_letter_correctness(keypress, master_string[pos_x]));
                 letter_t letter = 
                 {
                     .color = COLOR_RED,
                     .letter = (char) keypress
                 };
-                color_enc_line_append(&recorded_letters, letter, 0);
+                ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 num_wrong_words++;
             }
             else
@@ -158,7 +157,7 @@ int main() {
                 }
                 else
                 {
-                    clrscr();
+                    ConsoleClearScreen();
                     // show timer
                     int size = sizeof(pline1);
                     memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
@@ -175,26 +174,26 @@ int main() {
         {
             if (keypress != ASCII_SPACE)
             {
-                write_char((char) keypress, pos_x - 1, pos_y, 
+                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, 
                     get_letter_correctness(keypress, master_string[pos_x]));
                 letter_t letter = 
                 {
                     .color = COLOR_RED,
                     .letter = (char) keypress
                 };
-                color_enc_line_append(&recorded_letters, letter, -1);
+                ColorEncodedLineAppend(&recorded_letters, letter, -1);
                 num_wrong_words++;
             }
             else
             {
-                write_char((char) keypress, pos_x, pos_y, 
+                ConsoleWriteChar((char) keypress, pos_x, pos_y, 
                     get_letter_correctness(keypress, master_string[pos_x]));
                 letter_t letter = 
                 {
                     .color = COLOR_YELLOW,
                     .letter = (char) keypress
                 };
-                color_enc_line_append(&recorded_letters, letter, 0);
+                ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 num_right_words++;
                 pos_x++;
             }
@@ -212,7 +211,7 @@ int main() {
                             .color = COLOR_YELLOW,
                             .letter = (char) keypress
                         };
-                        color_enc_line_append(&recorded_letters, letter, 0);
+                        ColorEncodedLineAppend(&recorded_letters, letter, 0);
                         break;
                     }
                     else if (master_string[pos_x] == ASCII_NEWLINE)
@@ -224,7 +223,7 @@ int main() {
                         }
                         else
                         {
-                            clrscr();
+                            ConsoleClearScreen();
                             // show timer
                             int size = sizeof(pline1);
                             memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
@@ -243,8 +242,8 @@ int main() {
                             .color = COLOR_RED,
                             .letter = master_string[pos_x]
                         };
-                        color_enc_line_append(&recorded_letters, letter, 0);
-                        write_char(master_string[pos_x], pos_x, pos_y, COLOR_RED);
+                        ColorEncodedLineAppend(&recorded_letters, letter, 0);
+                        ConsoleWriteChar(master_string[pos_x], pos_x, pos_y, COLOR_RED);
                         pos_x++;
                     }
                     num_wrong_words++;
@@ -259,7 +258,7 @@ int main() {
                         .color = COLOR_YELLOW,
                         .letter = (char) keypress
                     };
-                    color_enc_line_append(&recorded_letters, letter, 0);
+                    ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 }
                 else
                 {
@@ -268,10 +267,10 @@ int main() {
                         .color = COLOR_RED,
                         .letter = (char) keypress
                     };
-                    color_enc_line_append(&recorded_letters, letter, 0);
+                    ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 }
                 color_t letter_color = get_letter_correctness(keypress, master_string[pos_x]);
-                write_char((char) keypress, pos_x, pos_y, letter_color);
+                ConsoleWriteChar((char) keypress, pos_x, pos_y, letter_color);
                 pos_x++;
             }
         }

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "line.h": "c",
+        "color.h": "c"
+    }
+}

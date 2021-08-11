@@ -1,6 +1,6 @@
 #include <windows.h>
 #include <stdio.h>
-#include "console.h"
+#include "src/console.h"
 
 int ConsoleWriteChar(char c, int x, int y, color_t color)
 {
