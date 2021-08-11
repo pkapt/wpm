@@ -33,7 +33,22 @@ void ConsoleHideCursor()
    SetConsoleCursorInfo(consoleHandle, &info);
 }
 
+void ConsoleShowCursor()
+{
+   HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+   CONSOLE_CURSOR_INFO info;
+   info.dwSize = 100;
+   info.bVisible = TRUE;
+   SetConsoleCursorInfo(consoleHandle, &info);
+}
+
 void ConsoleClearScreen() 
 {
     printf("\e[1;1H\e[2J");
+}
+
+void ConsoleSetColor(color_t color)
+{
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, color);
 }

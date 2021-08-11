@@ -10,7 +10,9 @@
 int ConsoleWriteChar(char c, int x, int y, color_t color);
 int ConsoleWriteLine(char * line, int x, int y, color_t color);
 void ConsoleHideCursor();
+void ConsoleShowCursor();
 void ConsoleClearScreen();
+void ConsoleSetColor(color_t color);
 
 
 #endif

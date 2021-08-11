@@ -17,7 +17,8 @@
 #define ASCII_Z 122
 
 #define LEN_WORD_BANK 271
-#define WORDS_PER_LINE 1
+#define WORDS_PER_LINE 10
+#define TIMEOUT 300000
 
 char *word_bank[LEN_WORD_BANK] =
 {
@@ -93,9 +94,24 @@ color_t get_letter_correctness(char incoming_letter, char master_letter)
     }
 }
 
+void cleanupConsole()
+{
+    ConsoleSetColor(COLOR_WHITE);
+    ConsoleClearScreen();
+    ConsoleShowCursor();
+}
+
+bool quit_flag = false;
+
+void exit_program()
+{
+    quit_flag = true;
+}
+
 int main() {
     ConsoleClearScreen();
     srand(time(NULL)); // initialize random generator for fetching random words
+    UINT_PTR timerid = SetTimer(NULL, 0, 3000, &exit_program);
     bool quit = false;
     int pos_x = 0;
     int pos_y = 0;
@@ -122,14 +138,14 @@ int main() {
 
     ConsoleHideCursor();
 
-    while(!quit) 
+    while(!quit_flag) 
     {
         int keypress = _getch();
 
         if (keypress == ASCII_BREAK)
         {
-            // TODO do some color cleanup here
-            quit = true;
+            cleanupConsole();
+            exit_program();
         }
         else if (keypress == ASCII_NEWLINE)
         {
