@@ -1,6 +1,10 @@
+#include <stdio.h>
 #include <string.h>
+#include <conio.h>
 #include <stdbool.h>
 #include <windows.h>
+#include <stdlib.h>
+#include <time.h>
 #include "src/line.h"
 #include "src/console.h"
 #include "src/color.h"
@@ -73,8 +77,8 @@ int getch_noblock() {
 int write_lines(color_enc_line_t * line_enc, char * line1, char * line2, int pos_x, int pos_y, color_t cline1, color_t cline2)
 {
     ColorEncodedLineWrite(line_enc, pos_x, pos_y);
-    write_line(line1, pos_x, pos_y + 1, COLOR_WHITE);
-    write_line(line2, pos_x, pos_y + 2, COLOR_WHITE);
+    ConsoleWriteLine(line1, pos_x, pos_y + 1, COLOR_WHITE);
+    ConsoleWriteLine(line2, pos_x, pos_y + 2, COLOR_WHITE);
 }
 
 color_t get_letter_correctness(char incoming_letter, char master_letter) 
@@ -110,9 +114,9 @@ int main() {
     color_enc_line_t recorded_letters;
     memset(&recorded_letters, 0x00, sizeof(color_enc_line_t));
 
-    write_line(pline1, pos_x, pos_y, COLOR_WHITE);
-    write_line(pline2, pos_x, pos_y + 1, COLOR_WHITE);
-    write_line(pline3, pos_x, pos_y + 2, COLOR_WHITE);
+    ConsoleWriteLine(pline1, pos_x, pos_y, COLOR_WHITE);
+    ConsoleWriteLine(pline2, pos_x, pos_y + 1, COLOR_WHITE);
+    ConsoleWriteLine(pline3, pos_x, pos_y + 2, COLOR_WHITE);
 
     char * master_string = pline1;
 
@@ -124,6 +128,7 @@ int main() {
 
         if (keypress == ASCII_BREAK)
         {
+            // TODO do some color cleanup here
             quit = true;
         }
         else if (keypress == ASCII_NEWLINE)
@@ -138,13 +143,8 @@ int main() {
         {
             if (keypress != ASCII_SPACE)
             {
-                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, 
-                    get_letter_correctness(keypress, master_string[pos_x]));
-                letter_t letter = 
-                {
-                    .color = COLOR_RED,
-                    .letter = (char) keypress
-                };
+                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
+                letter_t letter = {.color = COLOR_RED, .letter = (char)keypress};
                 ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 num_wrong_words++;
             }
@@ -174,25 +174,15 @@ int main() {
         {
             if (keypress != ASCII_SPACE)
             {
-                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, 
-                    get_letter_correctness(keypress, master_string[pos_x]));
-                letter_t letter = 
-                {
-                    .color = COLOR_RED,
-                    .letter = (char) keypress
-                };
+                ConsoleWriteChar((char) keypress, pos_x - 1, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
+                letter_t letter = {.color = COLOR_RED,.letter = (char) keypress};
                 ColorEncodedLineAppend(&recorded_letters, letter, -1);
                 num_wrong_words++;
             }
             else
             {
-                ConsoleWriteChar((char) keypress, pos_x, pos_y, 
-                    get_letter_correctness(keypress, master_string[pos_x]));
-                letter_t letter = 
-                {
-                    .color = COLOR_YELLOW,
-                    .letter = (char) keypress
-                };
+                ConsoleWriteChar((char) keypress, pos_x, pos_y, get_letter_correctness(keypress, master_string[pos_x]));
+                letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
                 ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 num_right_words++;
                 pos_x++;
@@ -206,11 +196,7 @@ int main() {
                     if (master_string[pos_x] == ASCII_SPACE) 
                     {
                         pos_x++;
-                        letter_t letter = 
-                        {
-                            .color = COLOR_YELLOW,
-                            .letter = (char) keypress
-                        };
+                        letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
                         ColorEncodedLineAppend(&recorded_letters, letter, 0);
                         break;
                     }
@@ -237,11 +223,7 @@ int main() {
                     }
                     else
                     {
-                        letter_t letter = 
-                        {
-                            .color = COLOR_RED,
-                            .letter = master_string[pos_x]
-                        };
+                        letter_t letter = {.color = COLOR_RED,.letter = master_string[pos_x]};
                         ColorEncodedLineAppend(&recorded_letters, letter, 0);
                         ConsoleWriteChar(master_string[pos_x], pos_x, pos_y, COLOR_RED);
                         pos_x++;
@@ -253,20 +235,12 @@ int main() {
             {
                 if (keypress == master_string[pos_x])
                 {
-                    letter_t letter = 
-                    {
-                        .color = COLOR_YELLOW,
-                        .letter = (char) keypress
-                    };
+                    letter_t letter = {.color = COLOR_YELLOW,.letter = (char) keypress};
                     ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 }
                 else
                 {
-                    letter_t letter = 
-                    {
-                        .color = COLOR_RED,
-                        .letter = (char) keypress
-                    };
+                    letter_t letter = {.color = COLOR_RED,.letter = (char) keypress};
                     ColorEncodedLineAppend(&recorded_letters, letter, 0);
                 }
                 color_t letter_color = get_letter_correctness(keypress, master_string[pos_x]);

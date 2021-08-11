@@ -1,6 +1,6 @@
 #include <windows.h>
 #include <stdio.h>
-#include "src/console.h"
+#include "console.h"
 
 int ConsoleWriteChar(char c, int x, int y, color_t color)
 {
@@ -13,7 +13,7 @@ int ConsoleWriteChar(char c, int x, int y, color_t color)
     printf("%c", c);
 }
 
-void ConsoleWriteChar(char * line, int x, int y, color_t color)
+int ConsoleWriteLine(char * line, int x, int y, color_t color)
 {
     COORD pos;
     pos.X = x;

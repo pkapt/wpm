@@ -1,7 +1,6 @@
 build: wpm.c
-	@gcc wpm.c -o wpm.exe -O0
 	@mkdir -p dist
-	@mv wpm.exe dist
+	@gcc main.c src/line.c src/console.c -o dist/wpm.exe -O0
 
 clean:
 	@rm -rf dist

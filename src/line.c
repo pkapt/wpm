@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "console.h"
 #include "line.h"
 
 int ColorEncodedLineAppend(color_enc_line_t * line, letter_t c, int index_offset)
@@ -16,7 +17,7 @@ int ColorEncodedLineWrite(color_enc_line_t * line, int x, int y)
 
     for (int i = 0; i < line->len; i++)
     {
-        write_char(line->letters[i].letter, x, y, line->letters[i].color);
+        ConsoleWriteChar(line->letters[i].letter, x, y, line->letters[i].color);
         x++;
     }
 }
