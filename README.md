@@ -1,9 +1,23 @@
 # wpm
 
-## description
+## Description
 
-This is a command line tool to test your typing skills. Design choices are based on [monkeytype](https://monkeytype.com)
+This is a command line tool to test your typing speed.
 
-## usage
+## Building
 
-`./wpm.ps1` 
+Assuming you have `gcc` installed, just type `make`.
+
+```
+make
+```
+
+## Usage
+
+```
+wpm.exe <timeout>
+```
+
+## Supported Platforms
+
+* Windows
