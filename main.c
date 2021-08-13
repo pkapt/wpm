@@ -18,7 +18,7 @@
 
 #define LEN_WORD_BANK 271
 #define WORDS_PER_LINE 10
-#define TIMEOUT 3000
+#define TIMEOUT 30000
 
 char *word_bank[LEN_WORD_BANK] =
 {
@@ -61,7 +61,7 @@ int get_chunk_of_random_words(int num_words, char ** word_bank, char * outbuff)
     // todo maybe make this safer by checking that you're not overflowing the buffer outbuff
     for (int i = 0; i < num_words; i++)
     {
-        int j = rand() % LEN_WORD_BANK - 1;
+        int j = rand() % (LEN_WORD_BANK - 1);
         char * rand_str = word_bank[j];
         chars_written += snprintf(outbuff + chars_written, strlen(rand_str) + 2, "%s ", rand_str);
     }
@@ -138,9 +138,9 @@ int main() {
 
     ConsoleHideCursor();
 
-    LARGE_INTEGER frequency;        // ticks per second
-    LARGE_INTEGER startTimeTicks, currentTimeTicks;           // ticks
-    double elapsedTime;
+    LARGE_INTEGER frequency;
+    LARGE_INTEGER startTimeTicks, currentTimeTicks;
+    unsigned long int elapsedTime_ms, elapsedTime_s, elapsedTime_m;
 
     // get ticks per second
     QueryPerformanceFrequency(&frequency);
@@ -276,10 +276,14 @@ int main() {
                 }
             }
         }
-        
+
         QueryPerformanceCounter(&currentTimeTicks);
-        elapsedTime = (currentTimeTicks.QuadPart - startTimeTicks.QuadPart) * 1000.0 / frequency.QuadPart;
-        if (elapsedTime >= TIMEOUT)
+        elapsedTime_ms = (currentTimeTicks.QuadPart - startTimeTicks.QuadPart) * 1000.0 / frequency.QuadPart;
+        elapsedTime_s = elapsedTime_ms / 1000;
+        elapsedTime_m = elapsedTime_s / 60;
+        ConsoleWriteTime(elapsedTime_m, elapsedTime_s, 0, 5);
+        
+        if (elapsedTime_ms >= TIMEOUT)
         {
             exit_program();
         }
@@ -287,3 +291,4 @@ int main() {
 
     return 0;
 }
+

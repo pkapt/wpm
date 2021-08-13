@@ -24,6 +24,47 @@ int ConsoleWriteLine(char * line, int x, int y, color_t color)
     printf("%s", line);
 }
 
+int ConsoleWriteTwoDigits(int n)
+{
+    int temp;
+	if (n <= 9)
+		printf("0%d", n);
+	else {
+        printf("0%d", n);
+	}
+}
+
+int ConsoleWriteTime(int min, int sec, int x, int y)
+{
+    if (min > 60)
+    {
+        min = 60;
+    }
+    else if (min < 0)
+    {
+        min = 0;
+    }
+
+    if (sec > 60)
+    {
+        sec = 60;
+    }
+    else if (sec < 0)
+    {
+        sec = 0;
+    }
+
+    
+    COORD pos;
+    pos.X = x;
+    pos.Y = y;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleCursorPosition(hConsole, pos);
+    ConsoleWriteTwoDigits(min);
+    printf(":");
+    ConsoleWriteTwoDigits(sec);
+}
+
 void ConsoleHideCursor()
 {
    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);

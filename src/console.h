@@ -13,6 +13,8 @@ void ConsoleHideCursor();
 void ConsoleShowCursor();
 void ConsoleClearScreen();
 void ConsoleSetColor(color_t color);
+int ConsoleWriteTwoDigits(int n);
+int ConsoleWriteTime(int min, int sec, int x, int y);
 
 
 #endif
