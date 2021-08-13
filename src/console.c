@@ -30,7 +30,7 @@ int ConsoleWriteTwoDigits(int n)
 	if (n <= 9)
 		printf("0%d", n);
 	else {
-        printf("0%d", n);
+        printf("%d", n);
 	}
 }
 
@@ -59,6 +59,7 @@ int ConsoleWriteTime(int min, int sec, int x, int y)
     pos.X = x;
     pos.Y = y;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, COLOR_WHITE);
     SetConsoleCursorPosition(hConsole, pos);
     ConsoleWriteTwoDigits(min);
     printf(":");

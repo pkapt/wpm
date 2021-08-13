@@ -18,7 +18,6 @@
 
 #define LEN_WORD_BANK 271
 #define WORDS_PER_LINE 10
-#define TIMEOUT 30000
 
 char *word_bank[LEN_WORD_BANK] =
 {
@@ -58,7 +57,6 @@ char *word_bank[LEN_WORD_BANK] =
 int get_chunk_of_random_words(int num_words, char ** word_bank, char * outbuff)
 {
     int chars_written = 0;
-    // todo maybe make this safer by checking that you're not overflowing the buffer outbuff
     for (int i = 0; i < num_words; i++)
     {
         int j = rand() % (LEN_WORD_BANK - 1);
@@ -109,48 +107,79 @@ void exit_program()
     cleanupConsole();
 }
 
-int main() {
-    ConsoleClearScreen();
-    srand(time(NULL)); // initialize random generator for fetching random words
-    bool quit = false;
+int main( int argc, char *argv[] ) {
     int pos_x = 0;
     int pos_y = 0;
+    int timeout = 0;
     int num_wrong_words = 0;
     int num_right_words = 0;
-
     char line1[LINE_MAX_LEN] = {0};
     char line2[LINE_MAX_LEN] = {0};
     char line3[LINE_MAX_LEN] = {0};
     char * pline1 = line1;
     char * pline2 = line2;
     char * pline3 = line3;
+    bool quit = false;
+
+    // initialize random generator for fetching random words
+    srand(time(NULL)); 
+
+    // initialize command line parameters
+    if (argc < 2)
+    {
+        fprintf( stderr, "Must supply positional argument timeout: wpm.exe <timeout>\nExample: wpm.exe 15", 30);
+        return 0;
+    }
+    else 
+    {
+        char *a = argv[1];
+        timeout = atoi(a) * 1000;
+    }
+
+    // initialize data structures
     get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline1);
     get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline2);
     get_chunk_of_random_words(WORDS_PER_LINE, word_bank, pline3);
+
     color_enc_line_t recorded_letters;
     memset(&recorded_letters, 0x00, sizeof(color_enc_line_t));
+    char * master_string = pline1;
 
+    // intialize timer
+    LARGE_INTEGER frequency;
+    LARGE_INTEGER startTimeTicks, currentTimeTicks;
+    unsigned long int elapsedTime_ms, elapsedTime_s, elapsedTime_m;
+    QueryPerformanceFrequency(&frequency); // get ticks per second
+    QueryPerformanceCounter(&startTimeTicks); // start timer
+
+    // intialize console
+    ConsoleHideCursor();
+    ConsoleClearScreen();
+    printf("\n\n\n\nBegin typing to start test...");
     ConsoleWriteLine(pline1, pos_x, pos_y, COLOR_WHITE);
     ConsoleWriteLine(pline2, pos_x, pos_y + 1, COLOR_WHITE);
     ConsoleWriteLine(pline3, pos_x, pos_y + 2, COLOR_WHITE);
 
-    char * master_string = pline1;
+    int firstKeyPress = _getch();
+    ConsoleClearScreen();
+    ConsoleWriteLine(pline1, pos_x, pos_y, COLOR_WHITE); // am lazy :()
+    ConsoleWriteLine(pline2, pos_x, pos_y + 1, COLOR_WHITE);
+    ConsoleWriteLine(pline3, pos_x, pos_y + 2, COLOR_WHITE);
+    int keypress;
 
-    ConsoleHideCursor();
-
-    LARGE_INTEGER frequency;
-    LARGE_INTEGER startTimeTicks, currentTimeTicks;
-    unsigned long int elapsedTime_ms, elapsedTime_s, elapsedTime_m;
-
-    // get ticks per second
-    QueryPerformanceFrequency(&frequency);
-
-    // start timer
-    QueryPerformanceCounter(&startTimeTicks);
 
     while(!quit_flag) 
     {
-        int keypress = getch_noblock();
+        if (firstKeyPress != -1)
+        {
+            keypress = firstKeyPress;
+            firstKeyPress = -1;
+        }
+        else
+        {
+            keypress = getch_noblock();
+        }
+        
 
         if (keypress != -1)
         {
@@ -185,7 +214,6 @@ int main() {
                     else
                     {
                         ConsoleClearScreen();
-                        // show timer
                         int size = sizeof(pline1);
                         memcpy(pline2, pline3, sizeof(char) * LINE_MAX_LEN);
                         memset(pline3, 0x00, sizeof(*pline3));
@@ -279,15 +307,22 @@ int main() {
 
         QueryPerformanceCounter(&currentTimeTicks);
         elapsedTime_ms = (currentTimeTicks.QuadPart - startTimeTicks.QuadPart) * 1000.0 / frequency.QuadPart;
-        elapsedTime_s = elapsedTime_ms / 1000;
+        double elapsed_ms = timeout - elapsedTime_ms;
+        elapsedTime_s = elapsed_ms / 1000;
         elapsedTime_m = elapsedTime_s / 60;
-        ConsoleWriteTime(elapsedTime_m, elapsedTime_s, 0, 5);
+        int seconds_left = elapsedTime_s - (elapsedTime_m * 60);
+        ConsoleWriteTime(elapsedTime_m, seconds_left, 0, 5);
         
-        if (elapsedTime_ms >= TIMEOUT)
+        if (elapsedTime_ms >= timeout)
         {
             exit_program();
         }
     }
+
+    float total_minutes = ((float)elapsedTime_ms / 1000.0 / 60.0);
+    float wpm = num_right_words / total_minutes;
+    printf("Your words per minute is %0.2f\n", wpm);
+    printf("You got %u words wrong", num_wrong_words);
 
     return 0;
 }
