@@ -6,7 +6,7 @@ This is a command line tool to test your typing speed.
 
 ## Building
 
-Assuming you have `gcc` installed, just type `make`.
+Assuming you have `gcc` and `make` installed, just type `make`.
 
 ```
 make
@@ -16,6 +16,11 @@ make
 
 ```
 wpm.exe <timeout>
+```
+
+Or install [run](https://github.com/pkapt/run), setup the previous command in a `runfile` and just call
+```
+run
 ```
 
 ## Supported Platforms
