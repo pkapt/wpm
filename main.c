@@ -145,13 +145,6 @@ int main( int argc, char *argv[] ) {
     memset(&recorded_letters, 0x00, sizeof(color_enc_line_t));
     char * master_string = pline1;
 
-    // intialize timer
-    LARGE_INTEGER frequency;
-    LARGE_INTEGER startTimeTicks, currentTimeTicks;
-    unsigned long int elapsedTime_ms, elapsedTime_s, elapsedTime_m;
-    QueryPerformanceFrequency(&frequency); // get ticks per second
-    QueryPerformanceCounter(&startTimeTicks); // start timer
-
     // intialize console
     ConsoleHideCursor();
     ConsoleClearScreen();
@@ -166,6 +159,13 @@ int main( int argc, char *argv[] ) {
     ConsoleWriteLine(pline2, pos_x, pos_y + 1, COLOR_WHITE);
     ConsoleWriteLine(pline3, pos_x, pos_y + 2, COLOR_WHITE);
     int keypress;
+
+    // intialize timer
+    LARGE_INTEGER frequency;
+    LARGE_INTEGER startTimeTicks, currentTimeTicks;
+    unsigned long int elapsedTime_ms, elapsedTime_s, elapsedTime_m;
+    QueryPerformanceFrequency(&frequency); // get ticks per second
+    QueryPerformanceCounter(&startTimeTicks); // start timer
 
 
     while(!quit_flag) 
