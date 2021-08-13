@@ -24,5 +24,6 @@ wpm.exe <timeout>
 
 ## Notes
 
-wpm doesn't currently support backspaces. I might add that soon but also I want to work on something else :).
-Open to collaboration, or suggestions for improvements/features/ect.
+* wpm doesn't currently support backspaces. I might add that soon but also I want to work on something else :).
+* Open to collaboration, or suggestions for improvements/features/ect.
+* This is also implemented in powershell at `scripts/wpm.ps1`
